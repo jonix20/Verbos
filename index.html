@@ -3,9 +3,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
-/* Layout: una sola columna. Pestañas arriba (Practicar / Lista). En Practicar, una tarjeta con el verbo grande
-   y cinco preguntas de opción múltiple que aparecen una a una. La Lista es una rejilla de 5 columnas que en
-   el teléfono se convierte en tarjetas. */
+/* Layout: una sola columna. Pestañas arriba (Practicar, Memorama, Escribir, Relámpago, Lista).
+   Cada juego es una tarjeta centrada de hasta 720px; la Lista usa una rejilla de 5 columnas que en el
+   teléfono se convierte en tarjetas. */
 :root {
   --bg: #F2F5F7;
   --surface: #FFFFFF;
@@ -84,22 +84,23 @@ h1 {
   text-wrap: balance;
 }
 .lede { margin: 0 0 22px; max-width: 62ch; color: var(--muted); }
-button { font-family: inherit; }
-button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visible, .opt:focus-visible {
+button, input { font-family: inherit; }
+button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visible, .opt:focus-visible, .mcard:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+.tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 24px; overflow-x: auto; }
 .tab {
   background: none;
   border: 0;
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
-  padding: 10px 14px;
-  font: 500 1rem var(--f-body);
+  padding: 10px 12px;
+  font: 500 0.95rem var(--f-body);
   color: var(--muted);
   cursor: pointer;
+  white-space: nowrap;
 }
 .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
 
@@ -132,9 +133,8 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
 .tag.irr { background: var(--irr-soft); color: var(--irr); }
 .irr-form { color: var(--irr); font-weight: 500; }
 
-/* ---------- Practicar ---------- */
-.pane-quiz { max-width: 720px; }
-.setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
+.narrow { max-width: 720px; }
+.setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; }
 .setup-l { font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
 .segb {
@@ -163,6 +163,7 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
   margin: 0 0 6px;
   overflow-wrap: anywhere;
 }
+.title2 { font-family: var(--f-display); font-weight: 700; font-size: 2rem; line-height: 1.1; margin: 0 0 10px; letter-spacing: -0.02em; }
 .q { padding: 18px 0 4px; border-top: 1px solid var(--line); margin-top: 14px; }
 .qlabel { margin: 0 0 2px; font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
 .qtext { margin: 0 0 12px; font-size: 1.125rem; }
@@ -187,16 +188,16 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
 }
 .opt.sp { font-family: var(--f-body); }
 .opt:hover { border-color: var(--accent); }
-.q.done .opt { cursor: default; pointer-events: none; }
+.q.done .opt, .locked .opt { cursor: default; pointer-events: none; }
 .opt.ok { background: var(--ok-soft); border-color: var(--ok); }
 .opt.bad { background: var(--bad-soft); border-color: var(--bad); }
 .mark { font-weight: 700; flex: none; }
 .opt.ok .mark { color: var(--ok); }
 .opt.bad .mark { color: var(--bad); }
-.fb { margin: 10px 0 0; font-size: 0.9375rem; color: var(--muted); }
-.fb strong.ok { color: var(--ok); }
-.fb strong.bad { color: var(--bad); }
-.fb .ans { font-family: var(--f-mono); color: var(--fg); }
+.fb { margin: 10px 0 0; font-size: 0.9375rem; color: var(--muted); min-height: 1.4em; }
+.fb strong.ok, .fx strong.ok { color: var(--ok); }
+.fb strong.bad, .fx strong.bad { color: var(--bad); }
+.fb .ans, .fx .ans { font-family: var(--f-mono); color: var(--fg); }
 
 .recap {
   margin-top: 20px;
@@ -210,7 +211,8 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
 .recap div { min-width: 0; }
 .recap span.l { display: block; font: 500 0.6875rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
 .recap span.v { font: 500 1rem var(--f-mono); overflow-wrap: anywhere; }
-.nav { margin-top: 20px; display: flex; justify-content: flex-end; }
+.nav { margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px; }
+.nav.left { justify-content: flex-start; }
 
 .results h2 { font-family: var(--f-display); font-size: 1.75rem; line-height: 1.1; margin: 0 0 6px; letter-spacing: -0.01em; }
 .results p { margin: 0 0 16px; color: var(--muted); }
@@ -221,7 +223,47 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
 .miss .es { grid-column: 1 / -1; font-size: 0.875rem; color: var(--muted); }
 .btns { display: flex; flex-wrap: wrap; gap: 10px; }
 
-/* ---------- Lista ---------- */
+/* Memorama */
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 18px; }
+.mcard {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 84px;
+  min-width: 0;
+  padding: 6px;
+  border: 1.5px solid var(--accent);
+  border-radius: 10px;
+  background: var(--accent);
+  color: var(--on-accent);
+  cursor: pointer;
+}
+.mcard .t { font: 500 1rem var(--f-mono); text-align: center; overflow-wrap: anywhere; }
+.mcard.sp .t { font-family: var(--f-body); }
+.mcard.up { background: var(--surface); color: var(--fg); }
+.mcard.up .t, .mcard.done .t { font-size: 0.9rem; }
+.mcard.done { background: var(--ok-soft); border-color: var(--ok); color: var(--fg); cursor: default; }
+
+/* Escribir */
+.fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 16px; margin-top: 8px; }
+.fld { min-width: 0; }
+.fld label { display: block; margin-bottom: 4px; font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.fld input {
+  width: 100%;
+  min-width: 0;
+  font: 500 1rem var(--f-mono);
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--fg);
+}
+.fld input.given { background: var(--accent-soft); border-color: var(--accent); }
+.fld input.ok { background: var(--ok-soft); border-color: var(--ok); }
+.fld input.bad { background: var(--bad-soft); border-color: var(--bad); }
+.fx { margin: 4px 0 0; font-size: 0.875rem; color: var(--muted); min-height: 1.3em; }
+
+/* Lista */
 .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 14px; }
 .count { font: 500 0.8rem var(--f-mono); color: var(--muted); letter-spacing: 0.04em; }
 .legend { margin: 0; font-size: 0.875rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
@@ -265,6 +307,7 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
   .f { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 0; }
   .c.p { grid-column: 1 / -1; }
   .card { padding: 18px 14px; }
+  .mcard .t { font-size: 0.875rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
@@ -274,23 +317,26 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
 <main class="wrap">
   <header>
     <h1>Verbos al azar</h1>
-    <p class="lede">Practica 60 verbos en inglés. Elige el significado, la 3ª persona, el presente continuo y el pasado, y di si el pasado es regular o irregular.</p>
+    <p class="lede">Practica 60 verbos en inglés con cuatro juegos y una lista para consultar.</p>
     <div class="tabs" role="tablist" aria-label="Secciones">
       <button class="tab" role="tab" id="tab-quiz" aria-selected="true" aria-controls="pane-quiz" type="button">Practicar</button>
-      <button class="tab" role="tab" id="tab-list" aria-selected="false" aria-controls="pane-list" type="button">Lista de verbos</button>
+      <button class="tab" role="tab" id="tab-mem" aria-selected="false" aria-controls="pane-mem" type="button">Memorama</button>
+      <button class="tab" role="tab" id="tab-write" aria-selected="false" aria-controls="pane-write" type="button">Escribir</button>
+      <button class="tab" role="tab" id="tab-blitz" aria-selected="false" aria-controls="pane-blitz" type="button">Relámpago</button>
+      <button class="tab" role="tab" id="tab-list" aria-selected="false" aria-controls="pane-list" type="button">Lista</button>
     </div>
   </header>
 
-  <section id="pane-quiz" class="pane-quiz" role="tabpanel" aria-labelledby="tab-quiz">
+  <!-- Practicar -->
+  <section id="pane-quiz" class="narrow" role="tabpanel" aria-labelledby="tab-quiz">
     <div class="setup">
       <span class="setup-l" id="size-l">Tanda</span>
-      <div class="seg" role="group" aria-labelledby="size-l">
+      <div class="seg" id="quiz-size" role="group" aria-labelledby="size-l">
         <button type="button" class="segb" data-n="10" aria-pressed="true">10 verbos</button>
         <button type="button" class="segb" data-n="20" aria-pressed="false">20 verbos</button>
         <button type="button" class="segb" data-n="60" aria-pressed="false">Los 60</button>
       </div>
     </div>
-
     <div id="play">
       <div class="meta"><span id="pos"></span><span id="score"></span></div>
       <div class="prog" aria-hidden="true"><i id="progbar"></i></div>
@@ -302,10 +348,74 @@ button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visibl
         <div class="nav"><button type="button" id="next" class="btn ghost">Saltar verbo</button></div>
       </article>
     </div>
-
     <div id="results" class="card results" hidden></div>
   </section>
 
+  <!-- Memorama -->
+  <section id="pane-mem" class="narrow" role="tabpanel" aria-labelledby="tab-mem" hidden>
+    <div class="setup">
+      <span class="setup-l" id="mem-k-l">Unir</span>
+      <div class="seg" id="mem-kind" role="group" aria-labelledby="mem-k-l">
+        <button type="button" class="segb" data-k="p" aria-pressed="true">Presente y pasado</button>
+        <button type="button" class="segb" data-k="g" aria-pressed="false">Presente y continuo</button>
+        <button type="button" class="segb" data-k="es" aria-pressed="false">Inglés y español</button>
+      </div>
+    </div>
+    <div class="setup">
+      <span class="setup-l" id="mem-n-l">Pares</span>
+      <div class="seg" id="mem-n" role="group" aria-labelledby="mem-n-l">
+        <button type="button" class="segb" data-n="6" aria-pressed="true">6</button>
+        <button type="button" class="segb" data-n="8" aria-pressed="false">8</button>
+      </div>
+      <button type="button" class="btn ghost" id="mem-new">Nueva partida</button>
+    </div>
+    <div class="meta"><span id="mem-moves"></span><span id="mem-time"></span></div>
+    <div id="board" class="board"></div>
+    <div id="mem-win" class="card results" hidden></div>
+  </section>
+
+  <!-- Escribir -->
+  <section id="pane-write" class="narrow" role="tabpanel" aria-labelledby="tab-write" hidden>
+    <div class="setup">
+      <span class="setup-l" id="w-l">Te damos</span>
+      <div class="seg" id="w-given" role="group" aria-labelledby="w-l">
+        <button type="button" class="segb" data-n="1" aria-pressed="true">1 dato</button>
+        <button type="button" class="segb" data-n="2" aria-pressed="false">2 datos</button>
+      </div>
+    </div>
+    <div id="w-play">
+      <div class="meta"><span id="w-pos"></span><span id="w-score"></span></div>
+      <div class="prog" aria-hidden="true"><i id="w-bar"></i></div>
+      <form class="card" id="w-form" autocomplete="off" novalidate>
+        <p class="kicker">Escribe las formas que faltan</p>
+        <div id="w-fields" class="fields"></div>
+        <p id="w-msg" class="fb" role="status"></p>
+        <div class="nav"><button type="submit" class="btn" id="w-check">Comprobar</button></div>
+      </form>
+    </div>
+    <div id="w-results" class="card results" hidden></div>
+  </section>
+
+  <!-- Relámpago -->
+  <section id="pane-blitz" class="narrow" role="tabpanel" aria-labelledby="tab-blitz" hidden>
+    <div id="b-start" class="card">
+      <p class="kicker">Relámpago</p>
+      <h2 class="title2">45 segundos</h2>
+      <p>Contesta lo más rápido que puedas. Te preguntan si el pasado es regular o irregular, qué terminación lleva la 3ª persona y cómo se forma el presente continuo.</p>
+      <div class="nav left"><button type="button" class="btn" id="b-go">Empezar</button></div>
+    </div>
+    <div id="b-play" class="card" hidden>
+      <div class="meta"><span id="b-time"></span><span id="b-score"></span></div>
+      <div class="prog" aria-hidden="true"><i id="b-bar"></i></div>
+      <p class="qlabel" id="b-kind"></p>
+      <p class="qtext" id="b-q"></p>
+      <div class="opts" id="b-opts"></div>
+      <p class="fb" id="b-fb" role="status"></p>
+    </div>
+    <div id="b-results" class="card results" hidden></div>
+  </section>
+
+  <!-- Lista -->
   <section id="pane-list" role="tabpanel" aria-labelledby="tab-list" hidden>
     <div class="bar">
       <button id="shuffle" type="button" class="btn">Mezclar</button>
@@ -407,7 +517,7 @@ function uniq(a) {
   a.forEach(function (x) { if (x && o.indexOf(x) === -1) o.push(x); });
   return o;
 }
-// Elige 3 opciones incorrectas: primero errores de ortografía típicos, luego otras formas del mismo verbo.
+// Elige 3 opciones incorrectas: primero errores de ortografía típicos, luego otras formas permitidas.
 function pick(correct, mistakes, others) {
   const m = shuffle(uniq(mistakes).filter(function (x) { return x !== correct; }));
   const o = shuffle(uniq(others).filter(function (x) { return x !== correct && m.indexOf(x) === -1; }));
@@ -426,6 +536,10 @@ function meanDistractors(v) {
   }).map(function (o) { return o.es; });
   return shuffle(uniq(pool)).slice(0, 3);
 }
+// Verbos cuya traducción comparte palabra con otro verbo (hacer, conocer, decir). No se dan como único dato.
+const AMB = new Set(V.filter(function (v) {
+  return V.some(function (o) { return o !== v && tokens(o.es).some(function (t) { return tokens(v.es).indexOf(t) !== -1; }); });
+}).map(function (v) { return v.en; }));
 
 function ruleS(v) {
   if (v.en === 'be') return 'Irregular: be → is.';
@@ -453,29 +567,102 @@ function ruleP(v) {
   return r;
 }
 
+// Las opciones y las pistas de cada pregunta no deben adelantar la respuesta de las que siguen:
+// la 3ª persona no muestra el continuo ni el pasado, el continuo no muestra el pasado,
+// y "regular o irregular" no muestra la forma del pasado.
 function buildQs(v) {
   const en = v.en;
   const last = en.slice(-1);
   const regular = /ed$/.test(v.p);
-  const sOthers = [en, v.g, v.p].concat(en === 'be' ? ['am', 'are'] : []);
-  const gMist = [en + 'ing', CONS.test(en) ? en + last + 'ing' : '', en.replace(/e$/, '') + 'ing', en.replace(/y$/, '') + 'ing'];
-  const pMist = [en + 'ed', /e$/.test(en) ? en + 'd' : '', /[^aeiou]y$/.test(en) ? en.replace(/y$/, 'ed') : '', CONS.test(en) ? en + last + 'ed' : ''];
+  const sMist = [en + 's', en + 'es', en + 'ies', en.replace(/y$/, 'ies'), CONS.test(en) ? en + last + 's' : ''];
+  const sOthers = [en].concat(en === 'be' ? ['am', 'are'] : []);
+  const gMist = [en + 'ing', CONS.test(en) ? en + last + 'ing' : '', en.replace(/e$/, '') + 'ing',
+    en.replace(/y$/, '') + 'ing', /e$/.test(en) ? '' : en + 'eing'];
+  const pMist = [en + 'ed', /e$/.test(en) ? en + 'd' : '', /[^aeiou]y$/.test(en) ? en.replace(/y$/, 'ed') : '',
+    CONS.test(en) ? en + last + 'ed' : ''];
   return [
     { label: 'Significado', html: '¿Qué significa <b>' + en + '</b>?', correct: v.es,
       opts: shuffle([v.es].concat(meanDistractors(v))), sp: true, rule: '' },
     { label: 'Presente simple, 3ª persona', html: 'She <span class="blank">___</span> (' + en + ').', correct: v.s,
-      opts: shuffle([v.s].concat(pick(v.s, [en + 's', en + 'es'], sOthers))), rule: ruleS(v) },
+      opts: shuffle([v.s].concat(pick(v.s, sMist, sOthers))), rule: ruleS(v) },
     { label: 'Presente continuo', html: 'She is <span class="blank">___</span> (' + en + ') right now.', correct: v.g,
-      opts: shuffle([v.g].concat(pick(v.g, gMist, [v.s, v.p, en]))), rule: ruleG(v) },
+      opts: shuffle([v.g].concat(pick(v.g, gMist, [en, v.s]))), rule: ruleG(v) },
     { label: 'Regular o irregular', html: '¿El pasado de <b>' + en + '</b> es regular o irregular?',
       correct: regular ? 'Regular' : 'Irregular', opts: ['Regular', 'Irregular'], sp: true,
-      rule: regular ? 'Su pasado termina en -ed (' + v.p + ').' : 'Su pasado cambia de forma (' + v.p + ').' },
+      rule: regular ? 'Su pasado termina en -ed.' : 'Su pasado no termina en -ed y hay que memorizarlo.' },
     { label: 'Pasado simple', html: 'Yesterday, she <span class="blank">___</span> (' + en + ').', correct: v.p,
       opts: shuffle([v.p].concat(pick(v.p, pMist, [en, v.g, v.s, PP[en]]))), rule: ruleP(v) }
   ];
 }
+
+// Comparación de respuestas escritas: sin mayúsculas, sin acentos, con espacios normalizados.
+function key(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ').trim();
+}
+function accepted(v, k) {
+  if (k === 'en') return [key(v.en), key('to ' + v.en)];
+  if (k === 's' || k === 'g') return [key(v[k])];
+  const raw = v[k].replace(/\(.*?\)/g, '').trim();
+  return uniq(raw.split('/').map(key).concat([key(raw), key(v[k])]));
+}
+
+// Memorama: elige los pares sin repetir palabras en español.
+function memPick(kind, n) {
+  const out = [];
+  let used = [];
+  shuffle(V).forEach(function (v) {
+    if (out.length >= n) return;
+    if (kind === 'p' && v.p === v.en) return;
+    if (kind === 'es') {
+      const t = tokens(v.es);
+      if (t.some(function (x) { return used.indexOf(x) !== -1; })) return;
+      used = used.concat(t);
+    }
+    out.push(v);
+  });
+  return out;
+}
+
+// Relámpago
+const B_TIME = 45;
+function catS(v) {
+  if (v.en === 'be' || v.en === 'have') return 'Irregular';
+  if (v.s === v.en + 's') return '-s';
+  if (/y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return '-ies';
+  return '-es';
+}
+function catG(v) {
+  if (v.g === v.en + 'ing') return 'Solo + -ing';
+  if (v.g === v.en.slice(0, -1) + 'ing') return 'Quita la e + -ing';
+  return 'Duplica la letra + -ing';
+}
+function catP(v) { return /ed$/.test(v.p) ? 'Regular' : 'Irregular'; }
+const BKINDS = {
+  reg: { label: 'Pasado', opts: ['Regular', 'Irregular'], mono: false, cat: catP,
+    html: function (v) { return 'El pasado de <b>' + v.en + '</b> es…'; }, show: function (v) { return v.p; } },
+  s: { label: '3ª persona', opts: ['-s', '-es', '-ies', 'Irregular'], mono: true, cat: catS,
+    html: function (v) { return 'She ___ (<b>' + v.en + '</b>). ¿Qué lleva?'; }, show: function (v) { return v.s; } },
+  g: { label: 'Presente continuo', opts: ['Solo + -ing', 'Quita la e + -ing', 'Duplica la letra + -ing'], mono: false, cat: catG,
+    html: function (v) { return '<b>' + v.en + '</b> en presente continuo…'; }, show: function (v) { return v.g; } }
+};
 // ---- UI ----
 const $ = function (id) { return document.getElementById(id); };
+function each(list, fn) { Array.prototype.forEach.call(list, fn); }
+function seg(id, cb) {
+  const box = $(id);
+  box.addEventListener('click', function (e) {
+    const b = e.target.closest('.segb');
+    if (!b) return;
+    each(box.querySelectorAll('.segb'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+    cb(b);
+  });
+}
+function fmt(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+/* ---------- Practicar ---------- */
 const st = { deck: [], i: 0, qs: [], qi: 0, right: 0, seen: 0, missed: [], size: 10, finished: false };
 
 function updateMeta() {
@@ -577,10 +764,9 @@ $('qs').addEventListener('click', function (e) {
   st.seen++;
   if (ok) st.right++;
   else if (st.missed.indexOf(v) === -1) st.missed.push(v);
-  Array.prototype.forEach.call(block.querySelectorAll('.opt'), function (o) {
-    const isCorrect = o.dataset.v === q.correct;
+  each(block.querySelectorAll('.opt'), function (o) {
     const mark = o.querySelector('.mark');
-    if (isCorrect) {
+    if (o.dataset.v === q.correct) {
       o.classList.add('ok'); mark.textContent = '✓';
       o.setAttribute('aria-label', o.dataset.v + ', respuesta correcta');
     } else if (o === b) {
@@ -588,15 +774,13 @@ $('qs').addEventListener('click', function (e) {
       o.setAttribute('aria-label', o.dataset.v + ', tu respuesta, incorrecta');
     }
   });
-  const fb = block.querySelector('.fb');
-  fb.innerHTML = ok
+  block.querySelector('.fb').innerHTML = ok
     ? '<strong class="ok">✓ Correcto.</strong> ' + q.rule
     : '<strong class="bad">✗ Incorrecto.</strong> Era <span class="ans">' + q.correct + '</span>. ' + q.rule;
   if (i < st.qs.length - 1) {
     appendQ(i + 1);
-    const nb = $('qs').lastElementChild;
     const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    nb.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
+    $('qs').lastElementChild.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
   } else {
     st.finished = true;
     showRecap(v);
@@ -608,29 +792,302 @@ $('next').addEventListener('click', function () {
   if (st.i < st.deck.length - 1) { st.i++; showVerb(); $('card').scrollIntoView({ block: 'start' }); }
   else showResults();
 });
+seg('quiz-size', function (b) { st.size = Number(b.dataset.n); newDeck(); });
 
-Array.prototype.forEach.call(document.querySelectorAll('.segb'), function (b) {
-  b.addEventListener('click', function () {
-    st.size = Number(b.dataset.n);
-    Array.prototype.forEach.call(document.querySelectorAll('.segb'), function (o) {
-      o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
-    });
-    newDeck();
+/* ---------- Memorama ---------- */
+const mem = { kind: 'p', pairs: 6, cards: [], list: [], open: [], lock: false, moves: 0, matched: 0, t0: 0, timer: null, game: 0 };
+
+function memFace(v, side) {
+  if (side === 0) return v.en;
+  return mem.kind === 'p' ? v.p : mem.kind === 'g' ? v.g : v.es;
+}
+function memPaint(i) {
+  const c = mem.cards[i];
+  const b = $('board').children[i];
+  const shown = c.up || c.done;
+  b.classList.toggle('up', c.up && !c.done);
+  b.classList.toggle('done', c.done);
+  b.firstChild.textContent = shown ? c.text + (c.done ? ' ✓' : '') : '?';
+  b.setAttribute('aria-label', shown ? c.text + (c.done ? ', pareja encontrada' : '') : 'Carta ' + (i + 1) + ', boca abajo');
+}
+function memStats() {
+  $('mem-moves').textContent = mem.moves + ' movimientos · ' + mem.matched + ' de ' + mem.pairs + ' pares';
+  $('mem-time').textContent = 'Tiempo ' + fmt(mem.t0 ? Date.now() - mem.t0 : 0);
+}
+function memNew() {
+  clearInterval(mem.timer);
+  mem.timer = null; mem.game++; mem.t0 = 0; mem.moves = 0; mem.matched = 0; mem.open = []; mem.lock = false;
+  mem.list = memPick(mem.kind, mem.pairs);
+  const cards = [];
+  mem.list.forEach(function (v, id) {
+    [0, 1].forEach(function (side) { cards.push({ id: id, side: side, text: memFace(v, side), up: false, done: false }); });
   });
+  mem.cards = shuffle(cards);
+  const board = $('board');
+  board.innerHTML = '';
+  mem.cards.forEach(function (c, i) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'mcard' + (mem.kind === 'es' && c.side === 1 ? ' sp' : '');
+    b.dataset.i = String(i);
+    b.appendChild(document.createElement('span')).className = 't';
+    board.appendChild(b);
+    memPaint(i);
+  });
+  $('mem-win').hidden = true;
+  memStats();
+}
+function memWin() {
+  clearInterval(mem.timer);
+  mem.timer = null;
+  const win = $('mem-win');
+  let html = '<h2>¡Lo lograste!</h2><p>' + mem.moves + ' movimientos en ' + fmt(Date.now() - mem.t0) + '.</p><ul class="miss">';
+  mem.list.forEach(function (v) {
+    html += '<li><b>' + v.en + '</b><span class="forms">' + memFace(v, 1) + '</span></li>';
+  });
+  html += '</ul><div class="btns"><button type="button" class="btn" id="mem-again">Jugar otra vez</button></div>';
+  win.innerHTML = html;
+  win.hidden = false;
+  $('mem-again').addEventListener('click', memNew);
+}
+$('board').addEventListener('click', function (e) {
+  const btn = e.target.closest('.mcard');
+  if (!btn || mem.lock) return;
+  const i = Number(btn.dataset.i);
+  const c = mem.cards[i];
+  if (c.up || c.done) return;
+  if (!mem.t0) {
+    mem.t0 = Date.now();
+    mem.timer = setInterval(function () { $('mem-time').textContent = 'Tiempo ' + fmt(Date.now() - mem.t0); }, 500);
+  }
+  c.up = true;
+  memPaint(i);
+  mem.open.push(i);
+  if (mem.open.length < 2) return;
+  mem.moves++;
+  const a = mem.open[0], b = mem.open[1];
+  if (mem.cards[a].id === mem.cards[b].id) {
+    mem.cards[a].done = true; mem.cards[b].done = true;
+    mem.open = [];
+    mem.matched++;
+    memPaint(a); memPaint(b);
+    memStats();
+    if (mem.matched === mem.pairs) memWin();
+  } else {
+    mem.lock = true;
+    memStats();
+    const g = mem.game;
+    setTimeout(function () {
+      if (g !== mem.game) return;
+      mem.cards[a].up = false; mem.cards[b].up = false;
+      memPaint(a); memPaint(b);
+      mem.open = []; mem.lock = false;
+    }, 900);
+  }
+});
+seg('mem-kind', function (b) { mem.kind = b.dataset.k; memNew(); });
+seg('mem-n', function (b) { mem.pairs = Number(b.dataset.n); memNew(); });
+$('mem-new').addEventListener('click', memNew);
+
+/* ---------- Escribir ---------- */
+const FIELDS = [
+  { k: 'es', label: 'Español' },
+  { k: 'en', label: 'Infinitivo' },
+  { k: 's', label: 'Presente simple (he / she / it)' },
+  { k: 'g', label: 'Presente continuo' },
+  { k: 'p', label: 'Pasado simple' }
+];
+const wr = { deck: [], i: 0, right: 0, total: 0, given: 1, checked: false, given_keys: [], miss: [] };
+
+function wrMeta() {
+  $('w-pos').textContent = 'Verbo ' + (wr.i + 1) + ' de ' + wr.deck.length;
+  $('w-score').textContent = wr.right + ' de ' + wr.total + ' correctas';
+  $('w-bar').style.width = (100 * (wr.i + (wr.checked ? 1 : 0)) / wr.deck.length) + '%';
+}
+function wrShow() {
+  const v = wr.deck[wr.i];
+  wr.checked = false;
+  const options = FIELDS.map(function (f) { return f.k; }).filter(function (k) { return !(k === 'es' && AMB.has(v.en)); });
+  wr.given_keys = shuffle(options).slice(0, wr.given);
+  const box = $('w-fields');
+  box.innerHTML = '';
+  FIELDS.forEach(function (f) {
+    const isGiven = wr.given_keys.indexOf(f.k) !== -1;
+    const d = document.createElement('div'); d.className = 'fld';
+    const lab = document.createElement('label'); lab.setAttribute('for', 'w-' + f.k); lab.textContent = f.label;
+    if (isGiven) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = 'dato'; lab.appendChild(t); }
+    const inp = document.createElement('input');
+    inp.id = 'w-' + f.k; inp.type = 'text';
+    inp.setAttribute('autocomplete', 'off'); inp.setAttribute('autocapitalize', 'none');
+    inp.setAttribute('autocorrect', 'off'); inp.spellcheck = false;
+    if (isGiven) { inp.value = v[f.k]; inp.readOnly = true; inp.className = 'given'; }
+    const fx = document.createElement('p'); fx.className = 'fx'; fx.id = 'w-fx-' + f.k;
+    d.appendChild(lab); d.appendChild(inp); d.appendChild(fx);
+    box.appendChild(d);
+  });
+  $('w-msg').textContent = '';
+  $('w-check').textContent = 'Comprobar';
+  wrMeta();
+}
+function wrCheck() {
+  const v = wr.deck[wr.i];
+  let right = 0, tot = 0, wrong = false;
+  FIELDS.forEach(function (f) {
+    if (wr.given_keys.indexOf(f.k) !== -1) return;
+    const inp = $('w-' + f.k);
+    const ok = accepted(v, f.k).indexOf(key(inp.value)) !== -1;
+    tot++;
+    inp.readOnly = true;
+    inp.classList.add(ok ? 'ok' : 'bad');
+    $('w-fx-' + f.k).innerHTML = ok
+      ? '<strong class="ok">✓ Correcto</strong>'
+      : '<strong class="bad">✗ Era</strong> <span class="ans">' + v[f.k] + '</span>';
+    if (ok) right++; else wrong = true;
+  });
+  wr.right += right; wr.total += tot;
+  if (wrong && wr.miss.indexOf(v) === -1) wr.miss.push(v);
+  wr.checked = true;
+  $('w-msg').textContent = 'Acertaste ' + right + ' de ' + tot + '.';
+  $('w-check').textContent = wr.i < wr.deck.length - 1 ? 'Siguiente verbo' : 'Ver resultados';
+  wrMeta();
+  $('w-check').focus();
+}
+function wrResults() {
+  const pct = wr.total ? Math.round(100 * wr.right / wr.total) : 0;
+  let html = '<h2>Tanda terminada</h2><p>Escribiste bien ' + wr.right + ' de ' + wr.total + ' formas (' + pct + '%).</p>';
+  if (wr.miss.length) {
+    html += '<p>Verbos para repasar:</p><ul class="miss">';
+    wr.miss.forEach(function (v) {
+      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns"><button type="button" class="btn" id="w-again">Nueva tanda</button></div>';
+  $('w-results').innerHTML = html;
+  $('w-play').hidden = true;
+  $('w-results').hidden = false;
+  $('w-again').addEventListener('click', wrNew);
+}
+function wrNew() {
+  wr.deck = shuffle(V).slice(0, 10);
+  wr.i = 0; wr.right = 0; wr.total = 0; wr.miss = [];
+  $('w-results').hidden = true;
+  $('w-play').hidden = false;
+  wrShow();
+}
+$('w-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  if (!wr.checked) wrCheck();
+  else if (wr.i < wr.deck.length - 1) {
+    wr.i++; wrShow();
+    const first = $('w-fields').querySelector('input:not([readonly])');
+    if (first) first.focus();
+  } else wrResults();
+});
+seg('w-given', function (b) { wr.given = Number(b.dataset.n); wrNew(); });
+
+/* ---------- Relámpago ---------- */
+const bl = { on: false, run: 0, end: 0, timer: null, score: 0, streak: 0, best: 0, total: 0, cur: null, last: null, locked: false, miss: [] };
+
+function bScore() { $('b-score').textContent = bl.score + ' correctas · racha ' + bl.streak; }
+function bNext() {
+  let v;
+  do { v = V[Math.floor(Math.random() * V.length)]; } while (v === bl.last);
+  bl.last = v;
+  const kind = ['reg', 's', 'g'][Math.floor(Math.random() * 3)];
+  const d = BKINDS[kind];
+  bl.cur = { v: v, kind: kind, correct: d.cat(v) };
+  $('b-kind').textContent = d.label;
+  $('b-q').innerHTML = d.html(v);
+  const box = $('b-opts');
+  box.innerHTML = '';
+  box.classList.remove('locked');
+  d.opts.forEach(function (o) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (d.mono ? '' : ' sp');
+    b.dataset.v = o;
+    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
+    const t = document.createElement('span'); t.textContent = o;
+    b.appendChild(mark); b.appendChild(t);
+    box.appendChild(b);
+  });
+  $('b-fb').textContent = '';
+  bl.locked = false;
+}
+function bTick() {
+  const rem = Math.max(0, bl.end - Date.now());
+  $('b-time').textContent = Math.ceil(rem / 1000) + ' s';
+  $('b-bar').style.width = (100 * rem / (B_TIME * 1000)) + '%';
+  if (rem <= 0) bEnd();
+}
+function bShow(which) {
+  $('b-start').hidden = which !== 'start';
+  $('b-play').hidden = which !== 'play';
+  $('b-results').hidden = which !== 'results';
+}
+function bStart() {
+  bl.run++;
+  bl.on = true; bl.score = 0; bl.streak = 0; bl.best = 0; bl.total = 0; bl.miss = []; bl.last = null;
+  bl.end = Date.now() + B_TIME * 1000;
+  bShow('play');
+  bScore();
+  bNext();
+  bTick();
+  clearInterval(bl.timer);
+  bl.timer = setInterval(bTick, 100);
+}
+function bEnd() {
+  clearInterval(bl.timer);
+  bl.on = false;
+  const pct = bl.total ? Math.round(100 * bl.score / bl.total) : 0;
+  let html = '<h2>Se acabó el tiempo</h2><p>' + bl.score + ' correctas de ' + bl.total + ' (' + pct + '%). Mejor racha: ' + bl.best + '.</p>';
+  if (bl.miss.length) {
+    html += '<p>Para repasar:</p><ul class="miss">';
+    bl.miss.forEach(function (m) {
+      const d = BKINDS[m.kind];
+      html += '<li><b>' + m.v.en + '</b><span class="forms">' + d.label.toLowerCase() + ': ' + d.show(m.v) + ' · ' + m.correct + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns"><button type="button" class="btn" id="b-again">Jugar otra vez</button></div>';
+  $('b-results').innerHTML = html;
+  bShow('results');
+  $('b-again').addEventListener('click', bStart);
+}
+function bReset() {
+  if (bl.on) { clearInterval(bl.timer); bl.on = false; }
+  bShow('start');
+}
+$('b-go').addEventListener('click', bStart);
+$('b-opts').addEventListener('click', function (e) {
+  const btn = e.target.closest('.opt');
+  if (!btn || bl.locked || !bl.on) return;
+  bl.locked = true;
+  bl.total++;
+  $('b-opts').classList.add('locked');
+  const cur = bl.cur;
+  const d = BKINDS[cur.kind];
+  const ok = btn.dataset.v === cur.correct;
+  each($('b-opts').querySelectorAll('.opt'), function (o) {
+    const mark = o.querySelector('.mark');
+    if (o.dataset.v === cur.correct) { o.classList.add('ok'); mark.textContent = '✓'; }
+    else if (o === btn) { o.classList.add('bad'); mark.textContent = '✗'; }
+  });
+  if (ok) {
+    bl.score++; bl.streak++; bl.best = Math.max(bl.best, bl.streak);
+    $('b-fb').innerHTML = '<strong class="ok">✓ Correcto.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
+  } else {
+    bl.streak = 0;
+    if (!bl.miss.some(function (m) { return m.v === cur.v && m.kind === cur.kind; })) bl.miss.push({ v: cur.v, kind: cur.kind, correct: cur.correct });
+    $('b-fb').innerHTML = '<strong class="bad">✗ Era ' + cur.correct + '.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
+  }
+  bScore();
+  const run = bl.run;
+  setTimeout(function () { if (bl.on && bl.run === run) bNext(); }, ok ? 450 : 1300);
 });
 
-// Pestañas
-function selectTab(which) {
-  const quiz = which === 'quiz';
-  $('pane-quiz').hidden = !quiz;
-  $('pane-list').hidden = quiz;
-  $('tab-quiz').setAttribute('aria-selected', quiz ? 'true' : 'false');
-  $('tab-list').setAttribute('aria-selected', quiz ? 'false' : 'true');
-}
-$('tab-quiz').addEventListener('click', function () { selectTab('quiz'); });
-$('tab-list').addEventListener('click', function () { selectTab('list'); });
-
-// Lista
+/* ---------- Lista ---------- */
 function rowHtml(v) {
   const irregular = !/ed$/.test(v.p);
   const stative = STATIVE.indexOf(v.en) !== -1;
@@ -649,8 +1106,22 @@ function renderList() { $('list').innerHTML = shuffle(V).map(rowHtml).join(''); 
 $('count').textContent = V.length + ' verbos';
 $('shuffle').addEventListener('click', renderList);
 
+/* ---------- Pestañas ---------- */
+const TABS = ['quiz', 'mem', 'write', 'blitz', 'list'];
+function selectTab(name) {
+  TABS.forEach(function (t) {
+    $('pane-' + t).hidden = t !== name;
+    $('tab-' + t).setAttribute('aria-selected', t === name ? 'true' : 'false');
+  });
+  if (name !== 'blitz') bReset();
+}
+TABS.forEach(function (t) { $('tab-' + t).addEventListener('click', function () { selectTab(t); }); });
+
 renderList();
 newDeck();
+memNew();
+wrNew();
+bReset();
 </script>
 
 </body></html>
