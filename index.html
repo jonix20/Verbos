@@ -1,0 +1,656 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Verbos al azar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: una sola columna. Pestañas arriba (Practicar / Lista). En Practicar, una tarjeta con el verbo grande
+   y cinco preguntas de opción múltiple que aparecen una a una. La Lista es una rejilla de 5 columnas que en
+   el teléfono se convierte en tarjetas. */
+:root {
+  --bg: #F2F5F7;
+  --surface: #FFFFFF;
+  --fg: #13202B;
+  --muted: #566774;
+  --line: #D5DDE3;
+  --accent: #0A5C9E;
+  --accent-soft: #DCEBF6;
+  --on-accent: #FFFFFF;
+  --irr: #A4470A;
+  --irr-soft: #FBE8D8;
+  --ok: #1B7F4B;
+  --ok-soft: #DDF1E5;
+  --bad: #B3261E;
+  --bad-soft: #FBE3E0;
+  --f-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --f-body: 'IBM Plex Sans', system-ui, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E151B;
+    --surface: #16212A;
+    --fg: #E6EDF2;
+    --muted: #93A4B1;
+    --line: #27384A;
+    --accent: #6DB3EC;
+    --accent-soft: #1B3347;
+    --on-accent: #0E151B;
+    --irr: #F0A66B;
+    --irr-soft: #3A2A1A;
+    --ok: #5CCB8B;
+    --ok-soft: #163626;
+    --bad: #F2877F;
+    --bad-soft: #3E1D1A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E151B;
+  --surface: #16212A;
+  --fg: #E6EDF2;
+  --muted: #93A4B1;
+  --line: #27384A;
+  --accent: #6DB3EC;
+  --accent-soft: #1B3347;
+  --on-accent: #0E151B;
+  --irr: #F0A66B;
+  --irr-soft: #3A2A1A;
+  --ok: #5CCB8B;
+  --ok-soft: #163626;
+  --bad: #F2877F;
+  --bad-soft: #3E1D1A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.5;
+  padding-block: 32px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+h1 {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 6vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.lede { margin: 0 0 22px; max-width: 62ch; color: var(--muted); }
+button { font-family: inherit; }
+button:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visible, .opt:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+.tab {
+  background: none;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+  padding: 10px 14px;
+  font: 500 1rem var(--f-body);
+  color: var(--muted);
+  cursor: pointer;
+}
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+
+.btn {
+  font: 500 1rem var(--f-body);
+  background: var(--accent);
+  color: var(--on-accent);
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn.ghost:hover { background: var(--accent-soft); filter: none; }
+
+.tag {
+  display: inline-block;
+  font: 500 0.6875rem/1.4 var(--f-body);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  margin-left: 6px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.tag.irr { background: var(--irr-soft); color: var(--irr); }
+.irr-form { color: var(--irr); font-weight: 500; }
+
+/* ---------- Practicar ---------- */
+.pane-quiz { max-width: 720px; }
+.setup { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 20px; }
+.setup-l { font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+.segb {
+  background: var(--surface);
+  color: var(--fg);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font: 500 0.9rem var(--f-body);
+  cursor: pointer;
+}
+.segb[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+.meta { display: flex; justify-content: space-between; gap: 12px; font: 500 0.8125rem var(--f-mono); color: var(--muted); letter-spacing: 0.03em; margin-bottom: 8px; }
+.prog { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 16px; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width 0.25s; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px 20px; }
+.kicker { margin: 0 0 4px; font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.word {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(3rem, 14vw, 4.5rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+.q { padding: 18px 0 4px; border-top: 1px solid var(--line); margin-top: 14px; }
+.qlabel { margin: 0 0 2px; font: 500 0.75rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+.qtext { margin: 0 0 12px; font-size: 1.125rem; }
+.qtext b { font-family: var(--f-display); font-weight: 700; }
+.blank { font-family: var(--f-mono); color: var(--muted); }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.opt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  min-width: 0;
+  text-align: left;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font: 500 1rem var(--f-mono);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.opt.sp { font-family: var(--f-body); }
+.opt:hover { border-color: var(--accent); }
+.q.done .opt { cursor: default; pointer-events: none; }
+.opt.ok { background: var(--ok-soft); border-color: var(--ok); }
+.opt.bad { background: var(--bad-soft); border-color: var(--bad); }
+.mark { font-weight: 700; flex: none; }
+.opt.ok .mark { color: var(--ok); }
+.opt.bad .mark { color: var(--bad); }
+.fb { margin: 10px 0 0; font-size: 0.9375rem; color: var(--muted); }
+.fb strong.ok { color: var(--ok); }
+.fb strong.bad { color: var(--bad); }
+.fb .ans { font-family: var(--f-mono); color: var(--fg); }
+
+.recap {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--accent-soft);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px 16px;
+}
+.recap div { min-width: 0; }
+.recap span.l { display: block; font: 500 0.6875rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.recap span.v { font: 500 1rem var(--f-mono); overflow-wrap: anywhere; }
+.nav { margin-top: 20px; display: flex; justify-content: flex-end; }
+
+.results h2 { font-family: var(--f-display); font-size: 1.75rem; line-height: 1.1; margin: 0 0 6px; letter-spacing: -0.01em; }
+.results p { margin: 0 0 16px; color: var(--muted); }
+.miss { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.miss li { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 2fr); gap: 4px 12px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.miss b { font-family: var(--f-display); font-size: 1.125rem; }
+.miss .forms { font: 400 0.9rem var(--f-mono); overflow-wrap: anywhere; }
+.miss .es { grid-column: 1 / -1; font-size: 0.875rem; color: var(--muted); }
+.btns { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* ---------- Lista ---------- */
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-bottom: 14px; }
+.count { font: 500 0.8rem var(--f-mono); color: var(--muted); letter-spacing: 0.04em; }
+.legend { margin: 0; font-size: 0.875rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.legend span.item { display: inline-flex; align-items: center; gap: 4px; }
+.legend .tag { margin-left: 0; }
+.cols, .row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1.4fr);
+  gap: 8px 16px;
+  align-items: center;
+}
+.cols {
+  margin-top: 24px;
+  padding: 0 16px 8px;
+  font: 500 0.75rem var(--f-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.row { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; }
+.c { min-width: 0; overflow-wrap: anywhere; }
+.c::before { display: none; }
+.en { font-family: var(--f-display); font-weight: 700; font-size: 1.25rem; letter-spacing: -0.01em; }
+.f { font-family: var(--f-mono); font-size: 0.95rem; min-height: 2rem; display: flex; align-items: center; }
+.note { display: block; font: 400 0.75rem var(--f-body); color: var(--muted); }
+.foot { margin: 28px 0 0; font-size: 0.8125rem; color: var(--muted); }
+
+@media (max-width: 720px) {
+  .cols { display: none; }
+  .row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); padding: 12px 14px; gap: 10px 14px; }
+  .c::before {
+    display: block;
+    font: 500 0.6875rem var(--f-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    content: attr(data-l);
+    margin-bottom: 2px;
+  }
+  .f { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 0; }
+  .c.p { grid-column: 1 / -1; }
+  .card { padding: 18px 14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<main class="wrap">
+  <header>
+    <h1>Verbos al azar</h1>
+    <p class="lede">Practica 60 verbos en inglés. Elige el significado, la 3ª persona, el presente continuo y el pasado, y di si el pasado es regular o irregular.</p>
+    <div class="tabs" role="tablist" aria-label="Secciones">
+      <button class="tab" role="tab" id="tab-quiz" aria-selected="true" aria-controls="pane-quiz" type="button">Practicar</button>
+      <button class="tab" role="tab" id="tab-list" aria-selected="false" aria-controls="pane-list" type="button">Lista de verbos</button>
+    </div>
+  </header>
+
+  <section id="pane-quiz" class="pane-quiz" role="tabpanel" aria-labelledby="tab-quiz">
+    <div class="setup">
+      <span class="setup-l" id="size-l">Tanda</span>
+      <div class="seg" role="group" aria-labelledby="size-l">
+        <button type="button" class="segb" data-n="10" aria-pressed="true">10 verbos</button>
+        <button type="button" class="segb" data-n="20" aria-pressed="false">20 verbos</button>
+        <button type="button" class="segb" data-n="60" aria-pressed="false">Los 60</button>
+      </div>
+    </div>
+
+    <div id="play">
+      <div class="meta"><span id="pos"></span><span id="score"></span></div>
+      <div class="prog" aria-hidden="true"><i id="progbar"></i></div>
+      <article class="card" id="card">
+        <p class="kicker">Verbo</p>
+        <h2 class="word" id="word"></h2>
+        <div id="qs"></div>
+        <div class="recap" id="recap" hidden></div>
+        <div class="nav"><button type="button" id="next" class="btn ghost">Saltar verbo</button></div>
+      </article>
+    </div>
+
+    <div id="results" class="card results" hidden></div>
+  </section>
+
+  <section id="pane-list" role="tabpanel" aria-labelledby="tab-list" hidden>
+    <div class="bar">
+      <button id="shuffle" type="button" class="btn">Mezclar</button>
+      <span id="count" class="count"></span>
+    </div>
+    <p class="legend">
+      <span class="item"><span class="tag irr">irregular</span> el pasado no termina en -ed</span>
+      <span class="item"><span class="tag">estado</span> normalmente no se usa en presente continuo</span>
+    </p>
+    <div class="cols" aria-hidden="true">
+      <span>Español</span><span>Inglés</span><span>He / she / it</span><span>Presente continuo</span><span>Pasado simple</span>
+    </div>
+    <ol id="list" class="list"></ol>
+    <p class="foot">Verbos de Verbos_1.pdf y Verbos - N2.pdf. La 3ª persona es la forma del presente simple para he, she, it.</p>
+  </section>
+</main>
+
+<script>
+// [inglés, 3ª persona, continuo, pasado, español, nota de pronunciación]
+const RAW = [
+  ['be','is','being','was / were','ser / estar'],
+  ['have','has','having','had','tener'],
+  ['do','does','doing','did','hacer'],
+  ['go','goes','going','went','ir'],
+  ['say','says','saying','said','decir'],
+  ['see','sees','seeing','saw','ver'],
+  ['eat','eats','eating','ate','comer'],
+  ['drink','drinks','drinking','drank','beber'],
+  ['live','lives','living','lived','vivir'],
+  ['like','likes','liking','liked','gustar'],
+  ['love','loves','loving','loved','amar'],
+  ['work','works','working','worked','trabajar'],
+  ['study','studies','studying','studied','estudiar'],
+  ['learn','learns','learning','learned','aprender'],
+  ['teach','teaches','teaching','taught','enseñar'],
+  ['read','reads','reading','read','leer','se pronuncia /red/'],
+  ['write','writes','writing','wrote','escribir'],
+  ['listen','listens','listening','listened','escuchar'],
+  ['speak','speaks','speaking','spoke','hablar'],
+  ['run','runs','running','ran','correr'],
+  ['walk','walks','walking','walked','caminar'],
+  ['swim','swims','swimming','swam','nadar'],
+  ['sleep','sleeps','sleeping','slept','dormir'],
+  ['buy','buys','buying','bought','comprar'],
+  ['sell','sells','selling','sold','vender'],
+  ['cook','cooks','cooking','cooked','cocinar'],
+  ['clean','cleans','cleaning','cleaned','limpiar'],
+  ['drive','drives','driving','drove','conducir'],
+  ['call','calls','calling','called','llamar'],
+  ['watch','watches','watching','watched','mirar (TV)'],
+  ['dance','dances','dancing','danced','bailar'],
+  ['sing','sings','singing','sang','cantar'],
+  ['play','plays','playing','played','jugar / tocar'],
+  ['open','opens','opening','opened','abrir'],
+  ['close','closes','closing','closed','cerrar'],
+  ['start','starts','starting','started','empezar'],
+  ['finish','finishes','finishing','finished','terminar'],
+  ['think','thinks','thinking','thought','pensar'],
+  ['need','needs','needing','needed','necesitar'],
+  ['want','wants','wanting','wanted','querer'],
+  ['carry','carries','carrying','carried','cargar / llevar'],
+  ['try','tries','trying','tried','intentar'],
+  ['fly','flies','flying','flew','volar'],
+  ['cry','cries','crying','cried','llorar'],
+  ['wash','washes','washing','washed','lavar'],
+  ['ask','asks','asking','asked','preguntar / pedir'],
+  ['answer','answers','answering','answered','responder'],
+  ['fix','fixes','fixing','fixed','arreglar'],
+  ['mix','mixes','mixing','mixed','mezclar'],
+  ['pass','passes','passing','passed','pasar'],
+  ['help','helps','helping','helped','ayudar'],
+  ['kiss','kisses','kissing','kissed','besar'],
+  ['ride','rides','riding','rode','montar'],
+  ['make','makes','making','made','hacer / fabricar'],
+  ['hear','hears','hearing','heard','oír'],
+  ['find','finds','finding','found','encontrar'],
+  ['know','knows','knowing','knew','saber / conocer'],
+  ['tell','tells','telling','told','contar / decir'],
+  ['leave','leaves','leaving','left','salir / dejar'],
+  ['meet','meets','meeting','met','conocer / encontrarse']
+];
+const STATIVE = ['be','have','see','like','love','think','need','want','know','hear'];
+// Participios que se parecen al pasado pero no lo son: sirven como opciones engañosas.
+const PP = { be:'been', do:'done', go:'gone', see:'seen', eat:'eaten', drink:'drunk', write:'written', speak:'spoken',
+  swim:'swum', drive:'driven', sing:'sung', fly:'flown', ride:'ridden', know:'known', run:'run' };
+const V = RAW.map(function (a) { return { en: a[0], s: a[1], g: a[2], p: a[3], es: a[4], note: a[5] || '' }; });
+const CONS = /[bcdfgklmnprstvz]$/;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function uniq(a) {
+  const o = [];
+  a.forEach(function (x) { if (x && o.indexOf(x) === -1) o.push(x); });
+  return o;
+}
+// Elige 3 opciones incorrectas: primero errores de ortografía típicos, luego otras formas del mismo verbo.
+function pick(correct, mistakes, others) {
+  const m = shuffle(uniq(mistakes).filter(function (x) { return x !== correct; }));
+  const o = shuffle(uniq(others).filter(function (x) { return x !== correct && m.indexOf(x) === -1; }));
+  const out = m.slice(0, 2);
+  o.forEach(function (x) { if (out.length < 3) out.push(x); });
+  m.slice(2).forEach(function (x) { if (out.length < 3) out.push(x); });
+  return out;
+}
+function tokens(es) {
+  return es.replace(/\(.*?\)/g, '').split('/').map(function (t) { return t.trim(); });
+}
+function meanDistractors(v) {
+  const mine = tokens(v.es);
+  const pool = V.filter(function (o) {
+    return o !== v && tokens(o.es).every(function (t) { return mine.indexOf(t) === -1; });
+  }).map(function (o) { return o.es; });
+  return shuffle(uniq(pool)).slice(0, 3);
+}
+
+function ruleS(v) {
+  if (v.en === 'be') return 'Irregular: be → is.';
+  if (v.en === 'have') return 'Irregular: have → has.';
+  if (v.s === v.en + 's') return 'Se agrega -s.';
+  if (/[^aeiou]y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return 'Consonante + y → -ies.';
+  if (v.en === 'go' || v.en === 'do') return 'go y do llevan -es.';
+  return 'Termina en -sh, -ch, -x o -ss: se agrega -es.';
+}
+function ruleG(v) {
+  let r;
+  if (v.g === v.en + 'ing') r = 'Se agrega -ing.';
+  else if (v.g === v.en.slice(0, -1) + 'ing') r = 'Termina en e: se quita la e y se agrega -ing.';
+  else r = 'Verbo corto terminado en consonante: se duplica la última letra y se agrega -ing.';
+  if (STATIVE.indexOf(v.en) !== -1) r += ' Es un verbo de estado: normalmente no se usa en continuo.';
+  return r;
+}
+function ruleP(v) {
+  let r;
+  if (v.p === v.en + 'ed') r = 'Regular: se agrega -ed.';
+  else if (/e$/.test(v.en) && v.p === v.en + 'd') r = 'Termina en e: se agrega solo -d.';
+  else if (/[^aeiou]y$/.test(v.en) && v.p === v.en.slice(0, -1) + 'ied') r = 'Consonante + y → -ied.';
+  else r = 'Irregular: hay que memorizarlo.';
+  if (v.note) r += ' ' + v.note.charAt(0).toUpperCase() + v.note.slice(1) + '.';
+  return r;
+}
+
+function buildQs(v) {
+  const en = v.en;
+  const last = en.slice(-1);
+  const regular = /ed$/.test(v.p);
+  const sOthers = [en, v.g, v.p].concat(en === 'be' ? ['am', 'are'] : []);
+  const gMist = [en + 'ing', CONS.test(en) ? en + last + 'ing' : '', en.replace(/e$/, '') + 'ing', en.replace(/y$/, '') + 'ing'];
+  const pMist = [en + 'ed', /e$/.test(en) ? en + 'd' : '', /[^aeiou]y$/.test(en) ? en.replace(/y$/, 'ed') : '', CONS.test(en) ? en + last + 'ed' : ''];
+  return [
+    { label: 'Significado', html: '¿Qué significa <b>' + en + '</b>?', correct: v.es,
+      opts: shuffle([v.es].concat(meanDistractors(v))), sp: true, rule: '' },
+    { label: 'Presente simple, 3ª persona', html: 'She <span class="blank">___</span> (' + en + ').', correct: v.s,
+      opts: shuffle([v.s].concat(pick(v.s, [en + 's', en + 'es'], sOthers))), rule: ruleS(v) },
+    { label: 'Presente continuo', html: 'She is <span class="blank">___</span> (' + en + ') right now.', correct: v.g,
+      opts: shuffle([v.g].concat(pick(v.g, gMist, [v.s, v.p, en]))), rule: ruleG(v) },
+    { label: 'Regular o irregular', html: '¿El pasado de <b>' + en + '</b> es regular o irregular?',
+      correct: regular ? 'Regular' : 'Irregular', opts: ['Regular', 'Irregular'], sp: true,
+      rule: regular ? 'Su pasado termina en -ed (' + v.p + ').' : 'Su pasado cambia de forma (' + v.p + ').' },
+    { label: 'Pasado simple', html: 'Yesterday, she <span class="blank">___</span> (' + en + ').', correct: v.p,
+      opts: shuffle([v.p].concat(pick(v.p, pMist, [en, v.g, v.s, PP[en]]))), rule: ruleP(v) }
+  ];
+}
+// ---- UI ----
+const $ = function (id) { return document.getElementById(id); };
+const st = { deck: [], i: 0, qs: [], qi: 0, right: 0, seen: 0, missed: [], size: 10, finished: false };
+
+function updateMeta() {
+  $('pos').textContent = 'Verbo ' + (st.i + 1) + ' de ' + st.deck.length;
+  $('score').textContent = st.right + ' de ' + st.seen + ' correctas';
+  $('progbar').style.width = (100 * (st.i + (st.finished ? 1 : 0)) / st.deck.length) + '%';
+  const last = st.i === st.deck.length - 1;
+  const b = $('next');
+  b.textContent = st.finished ? (last ? 'Ver resultados' : 'Siguiente verbo') : (last ? 'Terminar' : 'Saltar verbo');
+  b.className = 'btn' + (st.finished ? '' : ' ghost');
+}
+
+function appendQ(i) {
+  const q = st.qs[i];
+  const block = document.createElement('div');
+  block.className = 'q';
+  block.dataset.qi = String(i);
+  const label = document.createElement('p'); label.className = 'qlabel'; label.textContent = q.label;
+  const text = document.createElement('p'); text.className = 'qtext'; text.innerHTML = q.html;
+  const opts = document.createElement('div'); opts.className = 'opts'; opts.setAttribute('role', 'group'); opts.setAttribute('aria-label', q.label);
+  q.opts.forEach(function (o) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (q.sp ? ' sp' : '');
+    b.dataset.v = o;
+    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
+    const t = document.createElement('span'); t.textContent = o;
+    b.appendChild(mark); b.appendChild(t);
+    opts.appendChild(b);
+  });
+  const fb = document.createElement('p'); fb.className = 'fb'; fb.setAttribute('role', 'status');
+  block.appendChild(label); block.appendChild(text); block.appendChild(opts); block.appendChild(fb);
+  $('qs').appendChild(block);
+}
+
+function showRecap(v) {
+  const regular = /ed$/.test(v.p);
+  const r = $('recap');
+  r.innerHTML =
+    '<div><span class="l">Español</span><span class="v">' + v.es + '</span></div>' +
+    '<div><span class="l">He / she / it</span><span class="v">' + v.s + '</span></div>' +
+    '<div><span class="l">Continuo</span><span class="v">' + v.g + '</span></div>' +
+    '<div><span class="l">Pasado</span><span class="v' + (regular ? '' : ' irr-form') + '">' + v.p + '</span></div>';
+  r.hidden = false;
+}
+
+function showVerb() {
+  const v = st.deck[st.i];
+  st.qs = buildQs(v);
+  st.qi = 0;
+  st.finished = false;
+  $('word').textContent = v.en;
+  $('qs').innerHTML = '';
+  $('recap').hidden = true;
+  $('results').hidden = true;
+  $('play').hidden = false;
+  appendQ(0);
+  updateMeta();
+}
+
+function startDeck(verbs) {
+  st.deck = shuffle(verbs);
+  st.i = 0; st.right = 0; st.seen = 0; st.missed = [];
+  showVerb();
+}
+function newDeck() { startDeck(shuffle(V).slice(0, st.size)); }
+
+function showResults() {
+  const pct = st.seen ? Math.round(100 * st.right / st.seen) : 0;
+  const box = $('results');
+  let html = '<h2>Tanda terminada</h2><p>Acertaste ' + st.right + ' de ' + st.seen + ' preguntas (' + pct + '%).</p>';
+  if (st.missed.length) {
+    html += '<p>Verbos en los que fallaste al menos una vez:</p><ul class="miss">';
+    st.missed.forEach(function (v) {
+      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns">' + (st.missed.length ? '<button type="button" class="btn" id="review">Repasar los que fallé (' + st.missed.length + ')</button>' : '') +
+    '<button type="button" class="btn' + (st.missed.length ? ' ghost' : '') + '" id="again">Nueva tanda</button></div>';
+  box.innerHTML = html;
+  $('play').hidden = true;
+  box.hidden = false;
+  const rv = $('review');
+  if (rv) rv.addEventListener('click', function () { startDeck(st.missed.slice()); });
+  $('again').addEventListener('click', newDeck);
+}
+
+$('qs').addEventListener('click', function (e) {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  const block = b.closest('.q');
+  if (block.classList.contains('done')) return;
+  block.classList.add('done');
+  const i = Number(block.dataset.qi);
+  const q = st.qs[i];
+  const v = st.deck[st.i];
+  const ok = b.dataset.v === q.correct;
+  st.seen++;
+  if (ok) st.right++;
+  else if (st.missed.indexOf(v) === -1) st.missed.push(v);
+  Array.prototype.forEach.call(block.querySelectorAll('.opt'), function (o) {
+    const isCorrect = o.dataset.v === q.correct;
+    const mark = o.querySelector('.mark');
+    if (isCorrect) {
+      o.classList.add('ok'); mark.textContent = '✓';
+      o.setAttribute('aria-label', o.dataset.v + ', respuesta correcta');
+    } else if (o === b) {
+      o.classList.add('bad'); mark.textContent = '✗';
+      o.setAttribute('aria-label', o.dataset.v + ', tu respuesta, incorrecta');
+    }
+  });
+  const fb = block.querySelector('.fb');
+  fb.innerHTML = ok
+    ? '<strong class="ok">✓ Correcto.</strong> ' + q.rule
+    : '<strong class="bad">✗ Incorrecto.</strong> Era <span class="ans">' + q.correct + '</span>. ' + q.rule;
+  if (i < st.qs.length - 1) {
+    appendQ(i + 1);
+    const nb = $('qs').lastElementChild;
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    nb.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
+  } else {
+    st.finished = true;
+    showRecap(v);
+  }
+  updateMeta();
+});
+
+$('next').addEventListener('click', function () {
+  if (st.i < st.deck.length - 1) { st.i++; showVerb(); $('card').scrollIntoView({ block: 'start' }); }
+  else showResults();
+});
+
+Array.prototype.forEach.call(document.querySelectorAll('.segb'), function (b) {
+  b.addEventListener('click', function () {
+    st.size = Number(b.dataset.n);
+    Array.prototype.forEach.call(document.querySelectorAll('.segb'), function (o) {
+      o.setAttribute('aria-pressed', o === b ? 'true' : 'false');
+    });
+    newDeck();
+  });
+});
+
+// Pestañas
+function selectTab(which) {
+  const quiz = which === 'quiz';
+  $('pane-quiz').hidden = !quiz;
+  $('pane-list').hidden = quiz;
+  $('tab-quiz').setAttribute('aria-selected', quiz ? 'true' : 'false');
+  $('tab-list').setAttribute('aria-selected', quiz ? 'false' : 'true');
+}
+$('tab-quiz').addEventListener('click', function () { selectTab('quiz'); });
+$('tab-list').addEventListener('click', function () { selectTab('list'); });
+
+// Lista
+function rowHtml(v) {
+  const irregular = !/ed$/.test(v.p);
+  const stative = STATIVE.indexOf(v.en) !== -1;
+  const past = irregular
+    ? '<span class="irr-form">' + v.p + '</span><span class="tag irr">irregular</span>' + (v.note ? '<span class="note">' + v.note + '</span>' : '')
+    : v.p;
+  return '<li class="row">' +
+    '<div class="c es" data-l="Español">' + v.es + '</div>' +
+    '<div class="c en" data-l="Inglés">' + v.en + '</div>' +
+    '<div class="c f" data-l="He / she / it"><span>' + v.s + '</span></div>' +
+    '<div class="c f" data-l="Continuo"><span>' + v.g + (stative ? '<span class="tag">estado</span>' : '') + '</span></div>' +
+    '<div class="c f p" data-l="Pasado simple"><span>' + past + '</span></div>' +
+    '</li>';
+}
+function renderList() { $('list').innerHTML = shuffle(V).map(rowHtml).join(''); }
+$('count').textContent = V.length + ' verbos';
+$('shuffle').addEventListener('click', renderList);
+
+renderList();
+newDeck();
+</script>
+
+</body></html>
