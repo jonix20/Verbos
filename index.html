@@ -485,4 +485,737 @@ const RAW = [
   ['sleep','sleeps','sleeping','slept','dormir'],
   ['buy','buys','buying','bought','comprar'],
   ['sell','sells','selling','sold','vender'],
-  ['cook','cooks','cooking','cooked','cocinar'
+  ['cook','cooks','cooking','cooked','cocinar'],
+  ['clean','cleans','cleaning','cleaned','limpiar'],
+  ['drive','drives','driving','drove','conducir'],
+  ['call','calls','calling','called','llamar'],
+  ['watch','watches','watching','watched','mirar (TV)'],
+  ['dance','dances','dancing','danced','bailar'],
+  ['sing','sings','singing','sang','cantar'],
+  ['play','plays','playing','played','jugar'],
+  ['open','opens','opening','opened','abrir'],
+  ['close','closes','closing','closed','cerrar'],
+  ['start','starts','starting','started','empezar'],
+  ['finish','finishes','finishing','finished','terminar'],
+  ['think','thinks','thinking','thought','pensar'],
+  ['need','needs','needing','needed','necesitar'],
+  ['want','wants','wanting','wanted','querer']
+];
+const STATIVE = ['be','have','see','like','love','think','need','want'];
+// Participios que se parecen al pasado pero no lo son: sirven como opciones engañosas.
+const PP = { be:'been', do:'done', go:'gone', see:'seen', eat:'eaten', drink:'drunk', write:'written', speak:'spoken',
+  swim:'swum', drive:'driven', sing:'sung', fly:'flown', ride:'ridden', know:'known', run:'run' };
+const V = RAW.map(function (a) { return { en: a[0], s: a[1], g: a[2], p: a[3], es: a[4], note: a[5] || '' }; });
+const CONS = /[bcdfgklmnprstvz]$/;
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function uniq(a) {
+  const o = [];
+  a.forEach(function (x) { if (x && o.indexOf(x) === -1) o.push(x); });
+  return o;
+}
+// Opciones incorrectas: primero las más confusas (tier1, al azar), luego las de relleno (tier2, en orden).
+function pickN(correct, tier1, tier2, n) {
+  const a = shuffle(uniq(tier1).filter(function (x) { return x !== correct; }));
+  const b = uniq(tier2).filter(function (x) { return x !== correct && a.indexOf(x) === -1; });
+  return a.concat(b).slice(0, n);
+}
+function tokens(es) {
+  return es.replace(/\(.*?\)/g, '').split('/').map(function (t) { return t.trim(); });
+}
+// Traducciones parecidas entre sí: se usan como opciones confusas.
+const ES_GROUPS = [
+  ['hablar', 'decir', 'escuchar', 'llamar', 'enseñar', 'aprender', 'estudiar', 'leer', 'escribir', 'pensar'],
+  ['ver', 'mirar (TV)', 'escuchar', 'leer', 'jugar', 'bailar', 'cantar'],
+  ['gustar', 'amar', 'querer', 'necesitar', 'tener', 'ser / estar'],
+  ['correr', 'caminar', 'nadar', 'conducir', 'ir', 'bailar', 'jugar'],
+  ['comer', 'beber', 'cocinar', 'dormir', 'vivir', 'limpiar', 'trabajar'],
+  ['abrir', 'cerrar', 'empezar', 'terminar', 'comprar', 'vender', 'hacer']
+];
+function meanDistractors(v, n) {
+  const mine = tokens(v.es);
+  const far = V.filter(function (o) {
+    return o !== v && tokens(o.es).every(function (t) { return mine.indexOf(t) === -1; });
+  }).map(function (o) { return o.es; });
+  const near = [];
+  ES_GROUPS.forEach(function (g) {
+    if (g.indexOf(v.es) !== -1) g.forEach(function (e) { if (e !== v.es && far.indexOf(e) !== -1) near.push(e); });
+  });
+  const a = shuffle(uniq(near));
+  const b = shuffle(uniq(far).filter(function (e) { return a.indexOf(e) === -1; }));
+  return a.concat(b).slice(0, n);
+}
+// Verbos cuya traducción comparte palabra con otro verbo (hacer, conocer, decir). No se dan como único dato.
+const AMB = new Set(V.filter(function (v) {
+  return V.some(function (o) { return o !== v && tokens(o.es).some(function (t) { return tokens(v.es).indexOf(t) !== -1; }); });
+}).map(function (v) { return v.en; }));
+
+function ruleS(v) {
+  if (v.en === 'be') return 'Irregular: be → is.';
+  if (v.en === 'have') return 'Irregular: have → has.';
+  if (v.s === v.en + 's') return 'Se agrega -s.';
+  if (/[^aeiou]y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return 'Consonante + y → -ies.';
+  if (v.en === 'go' || v.en === 'do') return 'go y do llevan -es.';
+  return 'Termina en -sh, -ch, -x o -ss: se agrega -es.';
+}
+function ruleG(v) {
+  let r;
+  if (v.g === v.en + 'ing') r = 'Se agrega -ing.';
+  else if (v.g === v.en.slice(0, -1) + 'ing') r = 'Termina en e: se quita la e y se agrega -ing.';
+  else r = 'Verbo corto terminado en consonante: se duplica la última letra y se agrega -ing.';
+  if (STATIVE.indexOf(v.en) !== -1) r += ' Es un verbo de estado: normalmente no se usa en continuo.';
+  return r;
+}
+function ruleP(v) {
+  let r;
+  if (v.p === v.en + 'ed') r = 'Regular: se agrega -ed.';
+  else if (/e$/.test(v.en) && v.p === v.en + 'd') r = 'Termina en e: se agrega solo -d.';
+  else if (/[^aeiou]y$/.test(v.en) && v.p === v.en.slice(0, -1) + 'ied') r = 'Consonante + y → -ied.';
+  else r = 'Irregular: hay que memorizarlo.';
+  if (v.note) r += ' ' + v.note.charAt(0).toUpperCase() + v.note.slice(1) + '.';
+  return r;
+}
+
+// Pasados irregulares que se parecen entre sí.
+const IRR_LOOK = [
+  ['sang', 'swam', 'drank', 'ran', 'began', 'rang'],
+  ['spoke', 'wrote', 'drove', 'rode', 'woke', 'broke'],
+  ['bought', 'thought', 'taught', 'brought', 'caught', 'fought'],
+  ['slept', 'kept', 'swept', 'left'],
+  ['said', 'paid', 'laid'],
+  ['sold', 'told', 'held'],
+  ['went', 'gone'],
+  ['saw', 'seen'],
+  ['ate', 'eaten'],
+  ['did', 'done'],
+  ['had', 'has'],
+  ['read', 'red']
+];
+function irrLook(p) {
+  const p0 = p.split(' / ')[0];
+  const g = IRR_LOOK.filter(function (x) { return x.indexOf(p0) !== -1; })[0];
+  return g ? g.filter(function (x) { return x !== p0; }) : [];
+}
+
+// Cada pregunta trae 5 opciones: errores de ortografía típicos y formas parecidas.
+// Las opciones y las pistas no deben adelantar la respuesta de las preguntas que siguen:
+// la 3ª persona no muestra el continuo ni el pasado, el continuo no muestra el pasado,
+// y "regular o irregular" no muestra la forma del pasado.
+function buildQs(v) {
+  const en = v.en;
+  const last = en.slice(-1);
+  const regular = /ed$/.test(v.p);
+  const cons = /[^aeiouy]$/.test(en);
+  const others = V.filter(function (o) { return o !== v; });
+
+  const sMist = [en + 's', en + 'es', en + 'ies', en.replace(/y$/, 'ies'), en.replace(/y$/, 'es'),
+    en.replace(/e$/, '') + 's', cons ? en + last + 's' : '', cons ? en + last + 'es' : '',
+    en === 'be' ? 'are' : '', en === 'be' ? 'am' : '', en === 'go' ? 'does' : '', en === 'do' ? 'goes' : ''];
+  const sSame = shuffle(others.map(function (o) { return o.s; }).filter(function (x) { return x.slice(-2) === v.s.slice(-2); }));
+  const sRest = shuffle(others.map(function (o) { return o.s; }));
+  const sOpts = pickN(v.s, sMist, [en].concat(sSame, sRest), 4);
+
+  const gMist = [en + 'ing', en.replace(/e$/, '') + 'ing', cons ? en + last + 'ing' : '', en.replace(/y$/, '') + 'ing',
+    en.replace(/y$/, 'i') + 'ing', /e$/.test(en) ? '' : en + 'eing', v.s + 'ing'];
+  const gOpts = pickN(v.g, gMist, [en, v.s].concat(shuffle(others.map(function (o) { return o.g; }))), 4);
+
+  let pOpts;
+  if (en === 'be') {
+    pOpts = ['been', 'beed', 'wore', 'is / are'];
+  } else if (regular) {
+    const pMist = [en + 'ed', /e$/.test(en) ? en.slice(0, -1) + 'd' : en + 'd', en === 'learn' ? '' : en + 't',
+      cons ? en + last + 'ed' : '', en.replace(/y$/, 'ed'), en.replace(/y$/, 'ied'), en.slice(0, -1) + 'ed'];
+    pOpts = pickN(v.p, pMist, [en], 4);
+  } else {
+    const pMist = irrLook(v.p).concat(PP[en] ? [PP[en]] : [], [en + 'ed', /e$/.test(en) ? en + 'd' : '',
+      cons ? en + last + 'ed' : '', en.replace(/y$/, 'ied')]);
+    const pOther = shuffle(others.filter(function (o) { return !/ed$/.test(o.p); }).map(function (o) { return o.p.split(' / ')[0]; }));
+    pOpts = pickN(v.p, pMist, [en].concat(pOther), 4);
+  }
+
+  return [
+    { label: 'Significado', html: '¿Qué significa <b>' + en + '</b>?', correct: v.es,
+      opts: shuffle([v.es].concat(meanDistractors(v, 4))), sp: true, rule: '' },
+    { label: 'Presente simple, 3ª persona', html: 'She <span class="blank">___</span> (' + en + ').', correct: v.s,
+      opts: shuffle([v.s].concat(sOpts)), rule: ruleS(v) },
+    { label: 'Presente continuo', html: 'She is <span class="blank">___</span> (' + en + ') right now.', correct: v.g,
+      opts: shuffle([v.g].concat(gOpts)), rule: ruleG(v) },
+    { label: 'Regular o irregular', html: '¿El pasado de <b>' + en + '</b> es regular o irregular?',
+      correct: regular ? 'Regular' : 'Irregular', opts: ['Regular', 'Irregular'], sp: true,
+      rule: regular ? 'Su pasado termina en -ed.' : 'Su pasado no termina en -ed y hay que memorizarlo.' },
+    { label: 'Pasado simple', html: 'Yesterday, she <span class="blank">___</span> (' + en + ').', correct: v.p,
+      opts: shuffle([v.p].concat(pOpts)), rule: ruleP(v) }
+  ];
+}
+
+// Comparación de respuestas escritas: sin mayúsculas, sin acentos, con espacios normalizados.
+function key(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ').trim();
+}
+function accepted(v, k) {
+  if (k === 'en') return [key(v.en), key('to ' + v.en)];
+  if (k === 's' || k === 'g') return [key(v[k])];
+  const raw = v[k].replace(/\(.*?\)/g, '').trim();
+  return uniq(raw.split('/').map(key).concat([key(raw), key(v[k])]));
+}
+
+// Unir: elige los verbos de la ronda. Si hay formas en español, se evitan los verbos con traducción compartida.
+function uPick(n, forms) {
+  let pool = shuffle(V);
+  if (forms.indexOf('es') !== -1) pool = pool.filter(function (v) { return !AMB.has(v.en); });
+  return pool.slice(0, n);
+}
+function uChips(list, forms) {
+  const out = [];
+  list.forEach(function (v, vi) {
+    forms.forEach(function (k) { out.push({ id: vi + '-' + k, vi: vi, k: k, text: v[k], done: false }); });
+  });
+  return out;
+}
+
+// Relámpago
+const B_TIME = 45;
+function catS(v) {
+  if (v.en === 'be' || v.en === 'have') return 'Irregular';
+  if (v.s === v.en + 's') return '-s';
+  if (/y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return '-ies';
+  return '-es';
+}
+function catG(v) {
+  if (v.g === v.en + 'ing') return 'Solo + -ing';
+  if (v.g === v.en.slice(0, -1) + 'ing') return 'Quita la e + -ing';
+  return 'Duplica la letra + -ing';
+}
+function catP(v) { return /ed$/.test(v.p) ? 'Regular' : 'Irregular'; }
+const BKINDS = {
+  reg: { label: 'Pasado', opts: ['Regular', 'Irregular'], mono: false, cat: catP,
+    html: function (v) { return 'El pasado de <b>' + v.en + '</b> es…'; }, show: function (v) { return v.p; } },
+  s: { label: '3ª persona', opts: ['-s', '-es', '-ies', 'Irregular'], mono: true, cat: catS,
+    html: function (v) { return 'She ___ (<b>' + v.en + '</b>). ¿Qué lleva?'; }, show: function (v) { return v.s; } },
+  g: { label: 'Presente continuo', opts: ['Solo + -ing', 'Quita la e + -ing', 'Duplica la letra + -ing'], mono: false, cat: catG,
+    html: function (v) { return '<b>' + v.en + '</b> en presente continuo…'; }, show: function (v) { return v.g; } }
+};
+// ---- UI ----
+const $ = function (id) { return document.getElementById(id); };
+function each(list, fn) { Array.prototype.forEach.call(list, fn); }
+function seg(id, cb) {
+  const box = $(id);
+  box.addEventListener('click', function (e) {
+    const b = e.target.closest('.segb');
+    if (!b) return;
+    each(box.querySelectorAll('.segb'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
+    cb(b);
+  });
+}
+function fmt(ms) {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+}
+
+/* ---------- Practicar ---------- */
+const st = { deck: [], i: 0, qs: [], qi: 0, right: 0, seen: 0, missed: [], size: 10, finished: false };
+
+function updateMeta() {
+  $('pos').textContent = 'Verbo ' + (st.i + 1) + ' de ' + st.deck.length;
+  $('score').textContent = st.right + ' de ' + st.seen + ' correctas';
+  $('progbar').style.width = (100 * (st.i + (st.finished ? 1 : 0)) / st.deck.length) + '%';
+  const last = st.i === st.deck.length - 1;
+  const b = $('next');
+  b.textContent = st.finished ? (last ? 'Ver resultados' : 'Siguiente verbo') : (last ? 'Terminar' : 'Saltar verbo');
+  b.className = 'btn' + (st.finished ? '' : ' ghost');
+}
+
+function appendQ(i) {
+  const q = st.qs[i];
+  const block = document.createElement('div');
+  block.className = 'q';
+  block.dataset.qi = String(i);
+  const label = document.createElement('p'); label.className = 'qlabel'; label.textContent = q.label;
+  const text = document.createElement('p'); text.className = 'qtext'; text.innerHTML = q.html;
+  const opts = document.createElement('div'); opts.className = 'opts'; opts.setAttribute('role', 'group'); opts.setAttribute('aria-label', q.label);
+  q.opts.forEach(function (o) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (q.sp ? ' sp' : '');
+    b.dataset.v = o;
+    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
+    const t = document.createElement('span'); t.textContent = o;
+    b.appendChild(mark); b.appendChild(t);
+    opts.appendChild(b);
+  });
+  const fb = document.createElement('p'); fb.className = 'fb'; fb.setAttribute('role', 'status');
+  block.appendChild(label); block.appendChild(text); block.appendChild(opts); block.appendChild(fb);
+  $('qs').appendChild(block);
+}
+
+function showRecap(v) {
+  const regular = /ed$/.test(v.p);
+  const r = $('recap');
+  r.innerHTML =
+    '<div><span class="l">Español</span><span class="v">' + v.es + '</span></div>' +
+    '<div><span class="l">He / she / it</span><span class="v">' + v.s + '</span></div>' +
+    '<div><span class="l">Continuo</span><span class="v">' + v.g + '</span></div>' +
+    '<div><span class="l">Pasado</span><span class="v' + (regular ? '' : ' irr-form') + '">' + v.p + '</span></div>';
+  r.hidden = false;
+}
+
+function showVerb() {
+  const v = st.deck[st.i];
+  st.qs = buildQs(v);
+  st.qi = 0;
+  st.finished = false;
+  $('word').textContent = v.en;
+  $('qs').innerHTML = '';
+  $('recap').hidden = true;
+  $('results').hidden = true;
+  $('play').hidden = false;
+  appendQ(0);
+  updateMeta();
+}
+
+function startDeck(verbs) {
+  st.deck = shuffle(verbs);
+  st.i = 0; st.right = 0; st.seen = 0; st.missed = [];
+  showVerb();
+}
+function newDeck() { startDeck(shuffle(V).slice(0, st.size)); }
+
+function showResults() {
+  const pct = st.seen ? Math.round(100 * st.right / st.seen) : 0;
+  const box = $('results');
+  let html = '<h2>Tanda terminada</h2><p>Acertaste ' + st.right + ' de ' + st.seen + ' preguntas (' + pct + '%).</p>';
+  if (st.missed.length) {
+    html += '<p>Verbos en los que fallaste al menos una vez:</p><ul class="miss">';
+    st.missed.forEach(function (v) {
+      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns">' + (st.missed.length ? '<button type="button" class="btn" id="review">Repasar los que fallé (' + st.missed.length + ')</button>' : '') +
+    '<button type="button" class="btn' + (st.missed.length ? ' ghost' : '') + '" id="again">Nueva tanda</button></div>';
+  box.innerHTML = html;
+  $('play').hidden = true;
+  box.hidden = false;
+  const rv = $('review');
+  if (rv) rv.addEventListener('click', function () { startDeck(st.missed.slice()); });
+  $('again').addEventListener('click', newDeck);
+}
+
+$('qs').addEventListener('click', function (e) {
+  const b = e.target.closest('.opt');
+  if (!b) return;
+  const block = b.closest('.q');
+  if (block.classList.contains('done')) return;
+  block.classList.add('done');
+  const i = Number(block.dataset.qi);
+  const q = st.qs[i];
+  const v = st.deck[st.i];
+  const ok = b.dataset.v === q.correct;
+  st.seen++;
+  if (ok) st.right++;
+  else if (st.missed.indexOf(v) === -1) st.missed.push(v);
+  each(block.querySelectorAll('.opt'), function (o) {
+    const mark = o.querySelector('.mark');
+    if (o.dataset.v === q.correct) {
+      o.classList.add('ok'); mark.textContent = '✓';
+      o.setAttribute('aria-label', o.dataset.v + ', respuesta correcta');
+    } else if (o === b) {
+      o.classList.add('bad'); mark.textContent = '✗';
+      o.setAttribute('aria-label', o.dataset.v + ', tu respuesta, incorrecta');
+    }
+  });
+  block.querySelector('.fb').innerHTML = ok
+    ? '<strong class="ok">✓ Correcto.</strong> ' + q.rule
+    : '<strong class="bad">✗ Incorrecto.</strong> Era <span class="ans">' + q.correct + '</span>. ' + q.rule;
+  if (i < st.qs.length - 1) {
+    appendQ(i + 1);
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    $('qs').lastElementChild.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
+  } else {
+    st.finished = true;
+    showRecap(v);
+  }
+  updateMeta();
+});
+
+$('next').addEventListener('click', function () {
+  if (st.i < st.deck.length - 1) { st.i++; showVerb(); $('card').scrollIntoView({ block: 'start' }); }
+  else showResults();
+});
+seg('quiz-size', function (b) { st.size = Number(b.dataset.n); newDeck(); });
+
+/* ---------- Unir ---------- */
+const UF = { es: 'Español', s: '3ª persona', g: 'Continuo', p: 'Pasado' };
+const UORDER = ['es', 's', 'g', 'p'];
+const un = { n: 4, forms: ['es', 's', 'g', 'p'], list: [], chips: [], sel: null, matched: 0, errors: 0, t0: 0, timer: null, game: 0 };
+
+function uStats() {
+  $('u-stats').textContent = 'Unidas ' + un.matched + ' de ' + un.chips.length + ' · Errores ' + un.errors;
+  $('u-time').textContent = 'Tiempo ' + fmt(un.t0 ? Date.now() - un.t0 : 0);
+}
+function uPaintSel() {
+  each($('u-pool').querySelectorAll('.chip'), function (b) {
+    const on = !!un.sel && un.sel.type === 'chip' && un.sel.id === b.dataset.id;
+    b.classList.toggle('sel', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+  each($('u-grid').querySelectorAll('.vcard'), function (c) {
+    const on = !!un.sel && un.sel.type === 'card' && un.sel.id === c.dataset.i;
+    c.classList.toggle('sel', on);
+    c.querySelector('.vbtn').setAttribute('aria-pressed', on ? 'true' : 'false');
+  });
+}
+function uNew() {
+  clearInterval(un.timer);
+  un.timer = null; un.game++; un.t0 = 0; un.matched = 0; un.errors = 0; un.sel = null;
+  un.list = uPick(un.n, un.forms);
+  un.chips = uChips(un.list, un.forms);
+  $('u-grid').innerHTML = un.list.map(function (v, vi) {
+    return '<div class="vcard" data-i="' + vi + '"><button type="button" class="vbtn" aria-pressed="false">' + v.en + '</button><div class="slots">' +
+      un.forms.map(function (k) {
+        return '<div class="slot' + (k === 'es' ? ' sp' : '') + '" id="u-s-' + vi + '-' + k + '"><span class="sl">' + UF[k] + '</span><span class="sv"></span></div>';
+      }).join('') + '</div></div>';
+  }).join('');
+  const pool = $('u-pool');
+  pool.innerHTML = '';
+  shuffle(un.chips).forEach(function (c) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip' + (c.k === 'es' ? ' sp' : '');
+    b.dataset.id = c.id;
+    b.setAttribute('aria-pressed', 'false');
+    b.textContent = c.text;
+    pool.appendChild(b);
+  });
+  $('u-poolbox').hidden = false;
+  $('u-win').hidden = true;
+  $('u-msg').textContent = '';
+  uStats();
+}
+function uWin() {
+  clearInterval(un.timer);
+  un.timer = null;
+  const e = un.errors;
+  $('u-win').innerHTML = '<h2>¡Todas unidas!</h2><p>' + (e === 0 ? 'Sin errores' : e + (e === 1 ? ' error' : ' errores')) +
+    ' en ' + fmt(Date.now() - un.t0) + '.</p><div class="btns"><button type="button" class="btn" id="u-again">Otra ronda</button></div>';
+  $('u-poolbox').hidden = true;
+  $('u-win').hidden = false;
+  $('u-again').addEventListener('click', uNew);
+}
+function uAttempt(chipId, vi) {
+  const chip = un.chips.filter(function (c) { return c.id === chipId; })[0];
+  un.sel = null;
+  if (!chip || chip.done) { uPaintSel(); return; }
+  const v = un.list[vi];
+  const g = un.game;
+  const card = $('u-grid').children[vi];
+  const btn = $('u-pool').querySelector('.chip[data-id="' + chipId + '"]');
+  if (chip.vi === vi) {
+    chip.done = true;
+    un.matched++;
+    const slot = $('u-s-' + vi + '-' + chip.k);
+    slot.querySelector('.sv').textContent = chip.text;
+    slot.classList.add('filled');
+    btn.remove();
+    if (card.querySelectorAll('.slot.filled').length === un.forms.length) {
+      card.classList.add('done');
+      card.querySelector('.vbtn').insertAdjacentHTML('beforeend', ' <span class="mark" aria-hidden="true">✓</span>');
+    }
+    $('u-msg').innerHTML = '<strong class="ok">✓</strong> <span class="ans">' + chip.text + '</span> va con <b>' + v.en + '</b>.';
+  } else {
+    un.errors++;
+    btn.classList.add('bad');
+    card.classList.add('bad');
+    $('u-msg').innerHTML = '<strong class="bad">✗</strong> <span class="ans">' + chip.text + '</span> no va con <b>' + v.en + '</b>.';
+    setTimeout(function () {
+      if (g !== un.game) return;
+      btn.classList.remove('bad');
+      card.classList.remove('bad');
+    }, 800);
+  }
+  uPaintSel();
+  uStats();
+  if (un.matched === un.chips.length) uWin();
+}
+function uTap(type, id) {
+  if (!un.t0) {
+    un.t0 = Date.now();
+    un.timer = setInterval(function () { $('u-time').textContent = 'Tiempo ' + fmt(Date.now() - un.t0); }, 500);
+  }
+  if (un.sel && un.sel.type === type) {
+    un.sel = un.sel.id === id ? null : { type: type, id: id };
+    uPaintSel();
+    return;
+  }
+  if (un.sel) {
+    uAttempt(type === 'chip' ? id : un.sel.id, Number(type === 'card' ? id : un.sel.id));
+    return;
+  }
+  un.sel = { type: type, id: id };
+  uPaintSel();
+}
+$('u-pool').addEventListener('click', function (e) {
+  const b = e.target.closest('.chip');
+  if (b) uTap('chip', b.dataset.id);
+});
+$('u-grid').addEventListener('click', function (e) {
+  const c = e.target.closest('.vcard');
+  if (c && !c.classList.contains('done')) uTap('card', c.dataset.i);
+});
+seg('u-n', function (b) { un.n = Number(b.dataset.n); uNew(); });
+$('u-forms').addEventListener('click', function (e) {
+  const b = e.target.closest('.segb');
+  if (!b) return;
+  const on = b.getAttribute('aria-pressed') === 'true';
+  if (on && $('u-forms').querySelectorAll('.segb[aria-pressed="true"]').length === 1) return;
+  b.setAttribute('aria-pressed', on ? 'false' : 'true');
+  un.forms = UORDER.filter(function (k) {
+    return $('u-forms').querySelector('.segb[data-k="' + k + '"]').getAttribute('aria-pressed') === 'true';
+  });
+  uNew();
+});
+$('u-new').addEventListener('click', uNew);
+
+/* ---------- Escribir ---------- */
+const FIELDS = [
+  { k: 'es', label: 'Español' },
+  { k: 'en', label: 'Infinitivo' },
+  { k: 's', label: 'Presente simple (he / she / it)' },
+  { k: 'g', label: 'Presente continuo' },
+  { k: 'p', label: 'Pasado simple' }
+];
+const wr = { deck: [], i: 0, right: 0, total: 0, given: 1, checked: false, given_keys: [], miss: [] };
+
+function wrMeta() {
+  $('w-pos').textContent = 'Verbo ' + (wr.i + 1) + ' de ' + wr.deck.length;
+  $('w-score').textContent = wr.right + ' de ' + wr.total + ' correctas';
+  $('w-bar').style.width = (100 * (wr.i + (wr.checked ? 1 : 0)) / wr.deck.length) + '%';
+}
+function wrShow() {
+  const v = wr.deck[wr.i];
+  wr.checked = false;
+  const options = FIELDS.map(function (f) { return f.k; }).filter(function (k) { return !(k === 'es' && AMB.has(v.en)); });
+  wr.given_keys = shuffle(options).slice(0, wr.given);
+  const box = $('w-fields');
+  box.innerHTML = '';
+  FIELDS.forEach(function (f) {
+    const isGiven = wr.given_keys.indexOf(f.k) !== -1;
+    const d = document.createElement('div'); d.className = 'fld';
+    const lab = document.createElement('label'); lab.setAttribute('for', 'w-' + f.k); lab.textContent = f.label;
+    if (isGiven) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = 'dato'; lab.appendChild(t); }
+    const inp = document.createElement('input');
+    inp.id = 'w-' + f.k; inp.type = 'text';
+    inp.setAttribute('autocomplete', 'off'); inp.setAttribute('autocapitalize', 'none');
+    inp.setAttribute('autocorrect', 'off'); inp.spellcheck = false;
+    if (isGiven) { inp.value = v[f.k]; inp.readOnly = true; inp.className = 'given'; }
+    const fx = document.createElement('p'); fx.className = 'fx'; fx.id = 'w-fx-' + f.k;
+    d.appendChild(lab); d.appendChild(inp); d.appendChild(fx);
+    box.appendChild(d);
+  });
+  $('w-msg').textContent = '';
+  $('w-check').textContent = 'Comprobar';
+  wrMeta();
+}
+function wrCheck() {
+  const v = wr.deck[wr.i];
+  let right = 0, tot = 0, wrong = false;
+  FIELDS.forEach(function (f) {
+    if (wr.given_keys.indexOf(f.k) !== -1) return;
+    const inp = $('w-' + f.k);
+    const ok = accepted(v, f.k).indexOf(key(inp.value)) !== -1;
+    tot++;
+    inp.readOnly = true;
+    inp.classList.add(ok ? 'ok' : 'bad');
+    $('w-fx-' + f.k).innerHTML = ok
+      ? '<strong class="ok">✓ Correcto</strong>'
+      : '<strong class="bad">✗ Era</strong> <span class="ans">' + v[f.k] + '</span>';
+    if (ok) right++; else wrong = true;
+  });
+  wr.right += right; wr.total += tot;
+  if (wrong && wr.miss.indexOf(v) === -1) wr.miss.push(v);
+  wr.checked = true;
+  $('w-msg').textContent = 'Acertaste ' + right + ' de ' + tot + '.';
+  $('w-check').textContent = wr.i < wr.deck.length - 1 ? 'Siguiente verbo' : 'Ver resultados';
+  wrMeta();
+  $('w-check').focus();
+}
+function wrResults() {
+  const pct = wr.total ? Math.round(100 * wr.right / wr.total) : 0;
+  let html = '<h2>Tanda terminada</h2><p>Escribiste bien ' + wr.right + ' de ' + wr.total + ' formas (' + pct + '%).</p>';
+  if (wr.miss.length) {
+    html += '<p>Verbos para repasar:</p><ul class="miss">';
+    wr.miss.forEach(function (v) {
+      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns"><button type="button" class="btn" id="w-again">Nueva tanda</button></div>';
+  $('w-results').innerHTML = html;
+  $('w-play').hidden = true;
+  $('w-results').hidden = false;
+  $('w-again').addEventListener('click', wrNew);
+}
+function wrNew() {
+  wr.deck = shuffle(V).slice(0, 10);
+  wr.i = 0; wr.right = 0; wr.total = 0; wr.miss = [];
+  $('w-results').hidden = true;
+  $('w-play').hidden = false;
+  wrShow();
+}
+$('w-form').addEventListener('submit', function (e) {
+  e.preventDefault();
+  if (!wr.checked) wrCheck();
+  else if (wr.i < wr.deck.length - 1) {
+    wr.i++; wrShow();
+    const first = $('w-fields').querySelector('input:not([readonly])');
+    if (first) first.focus();
+  } else wrResults();
+});
+seg('w-given', function (b) { wr.given = Number(b.dataset.n); wrNew(); });
+
+/* ---------- Relámpago ---------- */
+const bl = { on: false, run: 0, end: 0, timer: null, score: 0, streak: 0, best: 0, total: 0, cur: null, last: null, locked: false, miss: [] };
+
+function bScore() { $('b-score').textContent = bl.score + ' correctas · racha ' + bl.streak; }
+function bNext() {
+  let v;
+  do { v = V[Math.floor(Math.random() * V.length)]; } while (v === bl.last);
+  bl.last = v;
+  const kind = ['reg', 's', 'g'][Math.floor(Math.random() * 3)];
+  const d = BKINDS[kind];
+  bl.cur = { v: v, kind: kind, correct: d.cat(v) };
+  $('b-kind').textContent = d.label;
+  $('b-q').innerHTML = d.html(v);
+  const box = $('b-opts');
+  box.innerHTML = '';
+  box.classList.remove('locked');
+  d.opts.forEach(function (o) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'opt' + (d.mono ? '' : ' sp');
+    b.dataset.v = o;
+    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
+    const t = document.createElement('span'); t.textContent = o;
+    b.appendChild(mark); b.appendChild(t);
+    box.appendChild(b);
+  });
+  $('b-fb').textContent = '';
+  bl.locked = false;
+}
+function bTick() {
+  const rem = Math.max(0, bl.end - Date.now());
+  $('b-time').textContent = Math.ceil(rem / 1000) + ' s';
+  $('b-bar').style.width = (100 * rem / (B_TIME * 1000)) + '%';
+  if (rem <= 0) bEnd();
+}
+function bShow(which) {
+  $('b-start').hidden = which !== 'start';
+  $('b-play').hidden = which !== 'play';
+  $('b-results').hidden = which !== 'results';
+}
+function bStart() {
+  bl.run++;
+  bl.on = true; bl.score = 0; bl.streak = 0; bl.best = 0; bl.total = 0; bl.miss = []; bl.last = null;
+  bl.end = Date.now() + B_TIME * 1000;
+  bShow('play');
+  bScore();
+  bNext();
+  bTick();
+  clearInterval(bl.timer);
+  bl.timer = setInterval(bTick, 100);
+}
+function bEnd() {
+  clearInterval(bl.timer);
+  bl.on = false;
+  const pct = bl.total ? Math.round(100 * bl.score / bl.total) : 0;
+  let html = '<h2>Se acabó el tiempo</h2><p>' + bl.score + ' correctas de ' + bl.total + ' (' + pct + '%). Mejor racha: ' + bl.best + '.</p>';
+  if (bl.miss.length) {
+    html += '<p>Para repasar:</p><ul class="miss">';
+    bl.miss.forEach(function (m) {
+      const d = BKINDS[m.kind];
+      html += '<li><b>' + m.v.en + '</b><span class="forms">' + d.label.toLowerCase() + ': ' + d.show(m.v) + ' · ' + m.correct + '</span></li>';
+    });
+    html += '</ul>';
+  }
+  html += '<div class="btns"><button type="button" class="btn" id="b-again">Jugar otra vez</button></div>';
+  $('b-results').innerHTML = html;
+  bShow('results');
+  $('b-again').addEventListener('click', bStart);
+}
+function bReset() {
+  if (bl.on) { clearInterval(bl.timer); bl.on = false; }
+  bShow('start');
+}
+$('b-go').addEventListener('click', bStart);
+$('b-opts').addEventListener('click', function (e) {
+  const btn = e.target.closest('.opt');
+  if (!btn || bl.locked || !bl.on) return;
+  bl.locked = true;
+  bl.total++;
+  $('b-opts').classList.add('locked');
+  const cur = bl.cur;
+  const d = BKINDS[cur.kind];
+  const ok = btn.dataset.v === cur.correct;
+  each($('b-opts').querySelectorAll('.opt'), function (o) {
+    const mark = o.querySelector('.mark');
+    if (o.dataset.v === cur.correct) { o.classList.add('ok'); mark.textContent = '✓'; }
+    else if (o === btn) { o.classList.add('bad'); mark.textContent = '✗'; }
+  });
+  if (ok) {
+    bl.score++; bl.streak++; bl.best = Math.max(bl.best, bl.streak);
+    $('b-fb').innerHTML = '<strong class="ok">✓ Correcto.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
+  } else {
+    bl.streak = 0;
+    if (!bl.miss.some(function (m) { return m.v === cur.v && m.kind === cur.kind; })) bl.miss.push({ v: cur.v, kind: cur.kind, correct: cur.correct });
+    $('b-fb').innerHTML = '<strong class="bad">✗ Era ' + cur.correct + '.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
+  }
+  bScore();
+  const run = bl.run;
+  setTimeout(function () { if (bl.on && bl.run === run) bNext(); }, ok ? 450 : 1300);
+});
+
+/* ---------- Lista ---------- */
+function rowHtml(v) {
+  const irregular = !/ed$/.test(v.p);
+  const stative = STATIVE.indexOf(v.en) !== -1;
+  const past = irregular
+    ? '<span class="irr-form">' + v.p + '</span><span class="tag irr">irregular</span>' + (v.note ? '<span class="note">' + v.note + '</span>' : '')
+    : v.p;
+  return '<li class="row">' +
+    '<div class="c es" data-l="Español">' + v.es + '</div>' +
+    '<div class="c en" data-l="Inglés">' + v.en + '</div>' +
+    '<div class="c f" data-l="He / she / it"><span>' + v.s + '</span></div>' +
+    '<div class="c f" data-l="Continuo"><span>' + v.g + (stative ? '<span class="tag">estado</span>' : '') + '</span></div>' +
+    '<div class="c f p" data-l="Pasado simple"><span>' + past + '</span></div>' +
+    '</li>';
+}
+function renderList() { $('list').innerHTML = shuffle(V).map(rowHtml).join(''); }
+$('count').textContent = V.length + ' verbos';
+$('shuffle').addEventListener('click', renderList);
+
+/* ---------- Pestañas ---------- */
+const TABS = ['quiz', 'unir', 'write', 'blitz', 'list'];
+function selectTab(name) {
+  TABS.forEach(function (t) {
+    $('pane-' + t).hidden = t !== name;
+    $('tab-' + t).setAttribute('aria-selected', t === name ? 'true' : 'false');
+  });
+  if (name !== 'blitz') bReset();
+}
+TABS.forEach(function (t) { $('tab-' + t).addEventListener('click', function () { selectTab(t); }); });
+
+renderList();
+newDeck();
+uNew();
+wrNew();
+bReset();
+</script>
+</body>
+</html>
