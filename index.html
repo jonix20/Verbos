@@ -1,9 +1,12 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Verbos al azar</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verbos al azar N2</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap">
 <style>
-/* Layout: una sola columna. Pestañas arriba (Practicar, Memorama, Escribir, Relámpago, Lista).
+/* Layout: una sola columna. Pestañas arriba (Practicar, Unir, Escribir, Relámpago, Lista).
    Cada juego es una tarjeta centrada de hasta 720px; la Lista usa una rejilla de 5 columnas que en el
    teléfono se convierte en tarjetas. */
 :root {
@@ -21,6 +24,7 @@
   --ok-soft: #DDF1E5;
   --bad: #B3261E;
   --bad-soft: #FBE3E0;
+  color-scheme: light;
   --f-display: 'Bricolage Grotesque', system-ui, sans-serif;
   --f-body: 'IBM Plex Sans', system-ui, sans-serif;
   --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
@@ -64,6 +68,7 @@
 
 * { box-sizing: border-box; }
 body {
+  margin: 0;
   background: var(--bg);
   color: var(--fg);
   font-family: var(--f-body);
@@ -85,7 +90,7 @@ h1 {
 }
 .lede { margin: 0 0 22px; max-width: 62ch; color: var(--muted); }
 button, input { font-family: inherit; }
-button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visible, .opt:focus-visible, .mcard:focus-visible {
+button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visible, .segb:focus-visible, .opt:focus-visible, .chip:focus-visible, .vbtn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
@@ -223,26 +228,37 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
 .miss .es { grid-column: 1 / -1; font-size: 0.875rem; color: var(--muted); }
 .btns { display: flex; flex-wrap: wrap; gap: 10px; }
 
-/* Memorama */
-.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 12px 0 18px; }
-.mcard {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 84px;
-  min-width: 0;
-  padding: 6px;
-  border: 1.5px solid var(--accent);
-  border-radius: 10px;
-  background: var(--accent);
-  color: var(--on-accent);
+/* Unir */
+.hint { margin: 0 0 14px; font-size: 0.9rem; color: var(--muted); }
+.vgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 8px 0 12px; }
+.vcard { background: var(--surface); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; min-width: 0; cursor: pointer; }
+.vcard.sel { border-color: var(--accent); background: var(--accent-soft); }
+.vcard.bad { border-color: var(--bad); background: var(--bad-soft); }
+.vcard.done { border-color: var(--ok); background: var(--ok-soft); cursor: default; }
+.vbtn { display: block; width: 100%; text-align: left; background: none; border: 0; padding: 0 0 6px; font: 700 1.5rem/1.1 var(--f-display); letter-spacing: -0.01em; color: var(--fg); cursor: inherit; overflow-wrap: anywhere; }
+.vbtn .mark { color: var(--ok); font-size: 1rem; }
+.slot { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; padding: 5px 0; border-top: 1px dashed var(--line); }
+.sl { flex: 0 0 4.4rem; font: 500 0.625rem var(--f-mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.sv { flex: 1 1 4rem; min-width: 0; min-height: 1.3em; font: 500 0.9rem var(--f-mono); overflow-wrap: anywhere; }
+.slot.sp .sv { font-family: var(--f-body); }
+.slot:not(.filled) .sv { border-bottom: 1.5px dashed var(--line); }
+.slot.filled .sv::after { content: " ✓"; color: var(--ok); }
+.pool { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.chip {
+  min-height: 40px;
+  padding: 8px 12px;
+  background: var(--surface);
+  color: var(--fg);
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  font: 500 0.95rem var(--f-mono);
   cursor: pointer;
+  overflow-wrap: anywhere;
 }
-.mcard .t { font: 500 1rem var(--f-mono); text-align: center; overflow-wrap: anywhere; }
-.mcard.sp .t { font-family: var(--f-body); }
-.mcard.up { background: var(--surface); color: var(--fg); }
-.mcard.up .t, .mcard.done .t { font-size: 0.9rem; }
-.mcard.done { background: var(--ok-soft); border-color: var(--ok); color: var(--fg); cursor: default; }
+.chip.sp { font-family: var(--f-body); }
+.chip:hover { border-color: var(--accent); }
+.chip.sel { background: var(--accent-soft); border-color: var(--accent); }
+.chip.bad { background: var(--bad-soft); border-color: var(--bad); }
 
 /* Escribir */
 .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px 16px; margin-top: 8px; }
@@ -307,20 +323,20 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
   .f { flex-direction: column; align-items: flex-start; justify-content: center; min-height: 0; }
   .c.p { grid-column: 1 / -1; }
   .card { padding: 18px 14px; }
-  .mcard .t { font-size: 0.875rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
 </style>
-
+</head>
+<body>
 <main class="wrap">
   <header>
     <h1>Verbos al azar</h1>
-    <p class="lede">Practica 60 verbos en inglés con cuatro juegos y una lista para consultar.</p>
+    <p class="lede">Practica los 40 verbos del documento N2 con cuatro juegos y una lista para consultar.</p>
     <div class="tabs" role="tablist" aria-label="Secciones">
       <button class="tab" role="tab" id="tab-quiz" aria-selected="true" aria-controls="pane-quiz" type="button">Practicar</button>
-      <button class="tab" role="tab" id="tab-mem" aria-selected="false" aria-controls="pane-mem" type="button">Memorama</button>
+      <button class="tab" role="tab" id="tab-unir" aria-selected="false" aria-controls="pane-unir" type="button">Unir</button>
       <button class="tab" role="tab" id="tab-write" aria-selected="false" aria-controls="pane-write" type="button">Escribir</button>
       <button class="tab" role="tab" id="tab-blitz" aria-selected="false" aria-controls="pane-blitz" type="button">Relámpago</button>
       <button class="tab" role="tab" id="tab-list" aria-selected="false" aria-controls="pane-list" type="button">Lista</button>
@@ -334,7 +350,7 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
       <div class="seg" id="quiz-size" role="group" aria-labelledby="size-l">
         <button type="button" class="segb" data-n="10" aria-pressed="true">10 verbos</button>
         <button type="button" class="segb" data-n="20" aria-pressed="false">20 verbos</button>
-        <button type="button" class="segb" data-n="60" aria-pressed="false">Los 60</button>
+        <button type="button" class="segb" data-n="40" aria-pressed="false">Los 40</button>
       </div>
     </div>
     <div id="play">
@@ -351,27 +367,35 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
     <div id="results" class="card results" hidden></div>
   </section>
 
-  <!-- Memorama -->
-  <section id="pane-mem" class="narrow" role="tabpanel" aria-labelledby="tab-mem" hidden>
+  <!-- Unir -->
+  <section id="pane-unir" class="narrow" role="tabpanel" aria-labelledby="tab-unir" hidden>
     <div class="setup">
-      <span class="setup-l" id="mem-k-l">Unir</span>
-      <div class="seg" id="mem-kind" role="group" aria-labelledby="mem-k-l">
-        <button type="button" class="segb" data-k="p" aria-pressed="true">Presente y pasado</button>
-        <button type="button" class="segb" data-k="g" aria-pressed="false">Presente y continuo</button>
-        <button type="button" class="segb" data-k="es" aria-pressed="false">Inglés y español</button>
+      <span class="setup-l" id="u-n-l">Verbos</span>
+      <div class="seg" id="u-n" role="group" aria-labelledby="u-n-l">
+        <button type="button" class="segb" data-n="4" aria-pressed="true">4</button>
+        <button type="button" class="segb" data-n="5" aria-pressed="false">5</button>
+        <button type="button" class="segb" data-n="6" aria-pressed="false">6</button>
       </div>
+      <button type="button" class="btn ghost" id="u-new">Nueva ronda</button>
     </div>
     <div class="setup">
-      <span class="setup-l" id="mem-n-l">Pares</span>
-      <div class="seg" id="mem-n" role="group" aria-labelledby="mem-n-l">
-        <button type="button" class="segb" data-n="6" aria-pressed="true">6</button>
-        <button type="button" class="segb" data-n="8" aria-pressed="false">8</button>
+      <span class="setup-l" id="u-f-l">Formas</span>
+      <div class="seg" id="u-forms" role="group" aria-labelledby="u-f-l">
+        <button type="button" class="segb" data-k="es" aria-pressed="true">Español</button>
+        <button type="button" class="segb" data-k="s" aria-pressed="true">3ª persona</button>
+        <button type="button" class="segb" data-k="g" aria-pressed="true">Continuo</button>
+        <button type="button" class="segb" data-k="p" aria-pressed="true">Pasado</button>
       </div>
-      <button type="button" class="btn ghost" id="mem-new">Nueva partida</button>
     </div>
-    <div class="meta"><span id="mem-moves"></span><span id="mem-time"></span></div>
-    <div id="board" class="board"></div>
-    <div id="mem-win" class="card results" hidden></div>
+    <p class="hint">Toca una forma y luego el verbo al que pertenece. También puedes tocar primero el verbo.</p>
+    <div class="meta"><span id="u-stats"></span><span id="u-time"></span></div>
+    <div id="u-grid" class="vgrid"></div>
+    <p id="u-msg" class="fb" role="status"></p>
+    <div id="u-poolbox">
+      <p class="setup-l">Formas por unir</p>
+      <div id="u-pool" class="pool"></div>
+    </div>
+    <div id="u-win" class="card results" hidden></div>
   </section>
 
   <!-- Escribir -->
@@ -429,7 +453,7 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
       <span>Español</span><span>Inglés</span><span>He / she / it</span><span>Presente continuo</span><span>Pasado simple</span>
     </div>
     <ol id="list" class="list"></ol>
-    <p class="foot">Verbos de Verbos_1.pdf y Verbos - N2.pdf. La 3ª persona es la forma del presente simple para he, she, it.</p>
+    <p class="foot">Verbos de Verbos - N2.pdf. La 3ª persona es la forma del presente simple para he, she, it.</p>
   </section>
 </main>
 
@@ -438,8 +462,8 @@ button:focus-visible, input:focus-visible, .row:focus-visible, .tab:focus-visibl
 const RAW = [
   ['be','is','being','was / were','ser / estar'],
   ['have','has','having','had','tener'],
-  ['do','does','doing','did','hacer'],
   ['go','goes','going','went','ir'],
+  ['do','does','doing','did','hacer'],
   ['say','says','saying','said','decir'],
   ['see','sees','seeing','saw','ver'],
   ['eat','eats','eating','ate','comer'],
@@ -461,667 +485,4 @@ const RAW = [
   ['sleep','sleeps','sleeping','slept','dormir'],
   ['buy','buys','buying','bought','comprar'],
   ['sell','sells','selling','sold','vender'],
-  ['cook','cooks','cooking','cooked','cocinar'],
-  ['clean','cleans','cleaning','cleaned','limpiar'],
-  ['drive','drives','driving','drove','conducir'],
-  ['call','calls','calling','called','llamar'],
-  ['watch','watches','watching','watched','mirar (TV)'],
-  ['dance','dances','dancing','danced','bailar'],
-  ['sing','sings','singing','sang','cantar'],
-  ['play','plays','playing','played','jugar / tocar'],
-  ['open','opens','opening','opened','abrir'],
-  ['close','closes','closing','closed','cerrar'],
-  ['start','starts','starting','started','empezar'],
-  ['finish','finishes','finishing','finished','terminar'],
-  ['think','thinks','thinking','thought','pensar'],
-  ['need','needs','needing','needed','necesitar'],
-  ['want','wants','wanting','wanted','querer'],
-  ['carry','carries','carrying','carried','cargar / llevar'],
-  ['try','tries','trying','tried','intentar'],
-  ['fly','flies','flying','flew','volar'],
-  ['cry','cries','crying','cried','llorar'],
-  ['wash','washes','washing','washed','lavar'],
-  ['ask','asks','asking','asked','preguntar / pedir'],
-  ['answer','answers','answering','answered','responder'],
-  ['fix','fixes','fixing','fixed','arreglar'],
-  ['mix','mixes','mixing','mixed','mezclar'],
-  ['pass','passes','passing','passed','pasar'],
-  ['help','helps','helping','helped','ayudar'],
-  ['kiss','kisses','kissing','kissed','besar'],
-  ['ride','rides','riding','rode','montar'],
-  ['make','makes','making','made','hacer / fabricar'],
-  ['hear','hears','hearing','heard','oír'],
-  ['find','finds','finding','found','encontrar'],
-  ['know','knows','knowing','knew','saber / conocer'],
-  ['tell','tells','telling','told','contar / decir'],
-  ['leave','leaves','leaving','left','salir / dejar'],
-  ['meet','meets','meeting','met','conocer / encontrarse']
-];
-const STATIVE = ['be','have','see','like','love','think','need','want','know','hear'];
-// Participios que se parecen al pasado pero no lo son: sirven como opciones engañosas.
-const PP = { be:'been', do:'done', go:'gone', see:'seen', eat:'eaten', drink:'drunk', write:'written', speak:'spoken',
-  swim:'swum', drive:'driven', sing:'sung', fly:'flown', ride:'ridden', know:'known', run:'run' };
-const V = RAW.map(function (a) { return { en: a[0], s: a[1], g: a[2], p: a[3], es: a[4], note: a[5] || '' }; });
-const CONS = /[bcdfgklmnprstvz]$/;
-
-function shuffle(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    const t = a[i]; a[i] = a[j]; a[j] = t;
-  }
-  return a;
-}
-function uniq(a) {
-  const o = [];
-  a.forEach(function (x) { if (x && o.indexOf(x) === -1) o.push(x); });
-  return o;
-}
-// Elige 3 opciones incorrectas: primero errores de ortografía típicos, luego otras formas permitidas.
-function pick(correct, mistakes, others) {
-  const m = shuffle(uniq(mistakes).filter(function (x) { return x !== correct; }));
-  const o = shuffle(uniq(others).filter(function (x) { return x !== correct && m.indexOf(x) === -1; }));
-  const out = m.slice(0, 2);
-  o.forEach(function (x) { if (out.length < 3) out.push(x); });
-  m.slice(2).forEach(function (x) { if (out.length < 3) out.push(x); });
-  return out;
-}
-function tokens(es) {
-  return es.replace(/\(.*?\)/g, '').split('/').map(function (t) { return t.trim(); });
-}
-function meanDistractors(v) {
-  const mine = tokens(v.es);
-  const pool = V.filter(function (o) {
-    return o !== v && tokens(o.es).every(function (t) { return mine.indexOf(t) === -1; });
-  }).map(function (o) { return o.es; });
-  return shuffle(uniq(pool)).slice(0, 3);
-}
-// Verbos cuya traducción comparte palabra con otro verbo (hacer, conocer, decir). No se dan como único dato.
-const AMB = new Set(V.filter(function (v) {
-  return V.some(function (o) { return o !== v && tokens(o.es).some(function (t) { return tokens(v.es).indexOf(t) !== -1; }); });
-}).map(function (v) { return v.en; }));
-
-function ruleS(v) {
-  if (v.en === 'be') return 'Irregular: be → is.';
-  if (v.en === 'have') return 'Irregular: have → has.';
-  if (v.s === v.en + 's') return 'Se agrega -s.';
-  if (/[^aeiou]y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return 'Consonante + y → -ies.';
-  if (v.en === 'go' || v.en === 'do') return 'go y do llevan -es.';
-  return 'Termina en -sh, -ch, -x o -ss: se agrega -es.';
-}
-function ruleG(v) {
-  let r;
-  if (v.g === v.en + 'ing') r = 'Se agrega -ing.';
-  else if (v.g === v.en.slice(0, -1) + 'ing') r = 'Termina en e: se quita la e y se agrega -ing.';
-  else r = 'Verbo corto terminado en consonante: se duplica la última letra y se agrega -ing.';
-  if (STATIVE.indexOf(v.en) !== -1) r += ' Es un verbo de estado: normalmente no se usa en continuo.';
-  return r;
-}
-function ruleP(v) {
-  let r;
-  if (v.p === v.en + 'ed') r = 'Regular: se agrega -ed.';
-  else if (/e$/.test(v.en) && v.p === v.en + 'd') r = 'Termina en e: se agrega solo -d.';
-  else if (/[^aeiou]y$/.test(v.en) && v.p === v.en.slice(0, -1) + 'ied') r = 'Consonante + y → -ied.';
-  else r = 'Irregular: hay que memorizarlo.';
-  if (v.note) r += ' ' + v.note.charAt(0).toUpperCase() + v.note.slice(1) + '.';
-  return r;
-}
-
-// Las opciones y las pistas de cada pregunta no deben adelantar la respuesta de las que siguen:
-// la 3ª persona no muestra el continuo ni el pasado, el continuo no muestra el pasado,
-// y "regular o irregular" no muestra la forma del pasado.
-function buildQs(v) {
-  const en = v.en;
-  const last = en.slice(-1);
-  const regular = /ed$/.test(v.p);
-  const sMist = [en + 's', en + 'es', en + 'ies', en.replace(/y$/, 'ies'), CONS.test(en) ? en + last + 's' : ''];
-  const sOthers = [en].concat(en === 'be' ? ['am', 'are'] : []);
-  const gMist = [en + 'ing', CONS.test(en) ? en + last + 'ing' : '', en.replace(/e$/, '') + 'ing',
-    en.replace(/y$/, '') + 'ing', /e$/.test(en) ? '' : en + 'eing'];
-  const pMist = [en + 'ed', /e$/.test(en) ? en + 'd' : '', /[^aeiou]y$/.test(en) ? en.replace(/y$/, 'ed') : '',
-    CONS.test(en) ? en + last + 'ed' : ''];
-  return [
-    { label: 'Significado', html: '¿Qué significa <b>' + en + '</b>?', correct: v.es,
-      opts: shuffle([v.es].concat(meanDistractors(v))), sp: true, rule: '' },
-    { label: 'Presente simple, 3ª persona', html: 'She <span class="blank">___</span> (' + en + ').', correct: v.s,
-      opts: shuffle([v.s].concat(pick(v.s, sMist, sOthers))), rule: ruleS(v) },
-    { label: 'Presente continuo', html: 'She is <span class="blank">___</span> (' + en + ') right now.', correct: v.g,
-      opts: shuffle([v.g].concat(pick(v.g, gMist, [en, v.s]))), rule: ruleG(v) },
-    { label: 'Regular o irregular', html: '¿El pasado de <b>' + en + '</b> es regular o irregular?',
-      correct: regular ? 'Regular' : 'Irregular', opts: ['Regular', 'Irregular'], sp: true,
-      rule: regular ? 'Su pasado termina en -ed.' : 'Su pasado no termina en -ed y hay que memorizarlo.' },
-    { label: 'Pasado simple', html: 'Yesterday, she <span class="blank">___</span> (' + en + ').', correct: v.p,
-      opts: shuffle([v.p].concat(pick(v.p, pMist, [en, v.g, v.s, PP[en]]))), rule: ruleP(v) }
-  ];
-}
-
-// Comparación de respuestas escritas: sin mayúsculas, sin acentos, con espacios normalizados.
-function key(s) {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s*\/\s*/g, '/').replace(/\s+/g, ' ').trim();
-}
-function accepted(v, k) {
-  if (k === 'en') return [key(v.en), key('to ' + v.en)];
-  if (k === 's' || k === 'g') return [key(v[k])];
-  const raw = v[k].replace(/\(.*?\)/g, '').trim();
-  return uniq(raw.split('/').map(key).concat([key(raw), key(v[k])]));
-}
-
-// Memorama: elige los pares sin repetir palabras en español.
-function memPick(kind, n) {
-  const out = [];
-  let used = [];
-  shuffle(V).forEach(function (v) {
-    if (out.length >= n) return;
-    if (kind === 'p' && v.p === v.en) return;
-    if (kind === 'es') {
-      const t = tokens(v.es);
-      if (t.some(function (x) { return used.indexOf(x) !== -1; })) return;
-      used = used.concat(t);
-    }
-    out.push(v);
-  });
-  return out;
-}
-
-// Relámpago
-const B_TIME = 45;
-function catS(v) {
-  if (v.en === 'be' || v.en === 'have') return 'Irregular';
-  if (v.s === v.en + 's') return '-s';
-  if (/y$/.test(v.en) && v.s === v.en.slice(0, -1) + 'ies') return '-ies';
-  return '-es';
-}
-function catG(v) {
-  if (v.g === v.en + 'ing') return 'Solo + -ing';
-  if (v.g === v.en.slice(0, -1) + 'ing') return 'Quita la e + -ing';
-  return 'Duplica la letra + -ing';
-}
-function catP(v) { return /ed$/.test(v.p) ? 'Regular' : 'Irregular'; }
-const BKINDS = {
-  reg: { label: 'Pasado', opts: ['Regular', 'Irregular'], mono: false, cat: catP,
-    html: function (v) { return 'El pasado de <b>' + v.en + '</b> es…'; }, show: function (v) { return v.p; } },
-  s: { label: '3ª persona', opts: ['-s', '-es', '-ies', 'Irregular'], mono: true, cat: catS,
-    html: function (v) { return 'She ___ (<b>' + v.en + '</b>). ¿Qué lleva?'; }, show: function (v) { return v.s; } },
-  g: { label: 'Presente continuo', opts: ['Solo + -ing', 'Quita la e + -ing', 'Duplica la letra + -ing'], mono: false, cat: catG,
-    html: function (v) { return '<b>' + v.en + '</b> en presente continuo…'; }, show: function (v) { return v.g; } }
-};
-// ---- UI ----
-const $ = function (id) { return document.getElementById(id); };
-function each(list, fn) { Array.prototype.forEach.call(list, fn); }
-function seg(id, cb) {
-  const box = $(id);
-  box.addEventListener('click', function (e) {
-    const b = e.target.closest('.segb');
-    if (!b) return;
-    each(box.querySelectorAll('.segb'), function (o) { o.setAttribute('aria-pressed', o === b ? 'true' : 'false'); });
-    cb(b);
-  });
-}
-function fmt(ms) {
-  const s = Math.floor(ms / 1000);
-  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-}
-
-/* ---------- Practicar ---------- */
-const st = { deck: [], i: 0, qs: [], qi: 0, right: 0, seen: 0, missed: [], size: 10, finished: false };
-
-function updateMeta() {
-  $('pos').textContent = 'Verbo ' + (st.i + 1) + ' de ' + st.deck.length;
-  $('score').textContent = st.right + ' de ' + st.seen + ' correctas';
-  $('progbar').style.width = (100 * (st.i + (st.finished ? 1 : 0)) / st.deck.length) + '%';
-  const last = st.i === st.deck.length - 1;
-  const b = $('next');
-  b.textContent = st.finished ? (last ? 'Ver resultados' : 'Siguiente verbo') : (last ? 'Terminar' : 'Saltar verbo');
-  b.className = 'btn' + (st.finished ? '' : ' ghost');
-}
-
-function appendQ(i) {
-  const q = st.qs[i];
-  const block = document.createElement('div');
-  block.className = 'q';
-  block.dataset.qi = String(i);
-  const label = document.createElement('p'); label.className = 'qlabel'; label.textContent = q.label;
-  const text = document.createElement('p'); text.className = 'qtext'; text.innerHTML = q.html;
-  const opts = document.createElement('div'); opts.className = 'opts'; opts.setAttribute('role', 'group'); opts.setAttribute('aria-label', q.label);
-  q.opts.forEach(function (o) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'opt' + (q.sp ? ' sp' : '');
-    b.dataset.v = o;
-    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
-    const t = document.createElement('span'); t.textContent = o;
-    b.appendChild(mark); b.appendChild(t);
-    opts.appendChild(b);
-  });
-  const fb = document.createElement('p'); fb.className = 'fb'; fb.setAttribute('role', 'status');
-  block.appendChild(label); block.appendChild(text); block.appendChild(opts); block.appendChild(fb);
-  $('qs').appendChild(block);
-}
-
-function showRecap(v) {
-  const regular = /ed$/.test(v.p);
-  const r = $('recap');
-  r.innerHTML =
-    '<div><span class="l">Español</span><span class="v">' + v.es + '</span></div>' +
-    '<div><span class="l">He / she / it</span><span class="v">' + v.s + '</span></div>' +
-    '<div><span class="l">Continuo</span><span class="v">' + v.g + '</span></div>' +
-    '<div><span class="l">Pasado</span><span class="v' + (regular ? '' : ' irr-form') + '">' + v.p + '</span></div>';
-  r.hidden = false;
-}
-
-function showVerb() {
-  const v = st.deck[st.i];
-  st.qs = buildQs(v);
-  st.qi = 0;
-  st.finished = false;
-  $('word').textContent = v.en;
-  $('qs').innerHTML = '';
-  $('recap').hidden = true;
-  $('results').hidden = true;
-  $('play').hidden = false;
-  appendQ(0);
-  updateMeta();
-}
-
-function startDeck(verbs) {
-  st.deck = shuffle(verbs);
-  st.i = 0; st.right = 0; st.seen = 0; st.missed = [];
-  showVerb();
-}
-function newDeck() { startDeck(shuffle(V).slice(0, st.size)); }
-
-function showResults() {
-  const pct = st.seen ? Math.round(100 * st.right / st.seen) : 0;
-  const box = $('results');
-  let html = '<h2>Tanda terminada</h2><p>Acertaste ' + st.right + ' de ' + st.seen + ' preguntas (' + pct + '%).</p>';
-  if (st.missed.length) {
-    html += '<p>Verbos en los que fallaste al menos una vez:</p><ul class="miss">';
-    st.missed.forEach(function (v) {
-      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
-    });
-    html += '</ul>';
-  }
-  html += '<div class="btns">' + (st.missed.length ? '<button type="button" class="btn" id="review">Repasar los que fallé (' + st.missed.length + ')</button>' : '') +
-    '<button type="button" class="btn' + (st.missed.length ? ' ghost' : '') + '" id="again">Nueva tanda</button></div>';
-  box.innerHTML = html;
-  $('play').hidden = true;
-  box.hidden = false;
-  const rv = $('review');
-  if (rv) rv.addEventListener('click', function () { startDeck(st.missed.slice()); });
-  $('again').addEventListener('click', newDeck);
-}
-
-$('qs').addEventListener('click', function (e) {
-  const b = e.target.closest('.opt');
-  if (!b) return;
-  const block = b.closest('.q');
-  if (block.classList.contains('done')) return;
-  block.classList.add('done');
-  const i = Number(block.dataset.qi);
-  const q = st.qs[i];
-  const v = st.deck[st.i];
-  const ok = b.dataset.v === q.correct;
-  st.seen++;
-  if (ok) st.right++;
-  else if (st.missed.indexOf(v) === -1) st.missed.push(v);
-  each(block.querySelectorAll('.opt'), function (o) {
-    const mark = o.querySelector('.mark');
-    if (o.dataset.v === q.correct) {
-      o.classList.add('ok'); mark.textContent = '✓';
-      o.setAttribute('aria-label', o.dataset.v + ', respuesta correcta');
-    } else if (o === b) {
-      o.classList.add('bad'); mark.textContent = '✗';
-      o.setAttribute('aria-label', o.dataset.v + ', tu respuesta, incorrecta');
-    }
-  });
-  block.querySelector('.fb').innerHTML = ok
-    ? '<strong class="ok">✓ Correcto.</strong> ' + q.rule
-    : '<strong class="bad">✗ Incorrecto.</strong> Era <span class="ans">' + q.correct + '</span>. ' + q.rule;
-  if (i < st.qs.length - 1) {
-    appendQ(i + 1);
-    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    $('qs').lastElementChild.scrollIntoView({ block: 'nearest', behavior: calm ? 'auto' : 'smooth' });
-  } else {
-    st.finished = true;
-    showRecap(v);
-  }
-  updateMeta();
-});
-
-$('next').addEventListener('click', function () {
-  if (st.i < st.deck.length - 1) { st.i++; showVerb(); $('card').scrollIntoView({ block: 'start' }); }
-  else showResults();
-});
-seg('quiz-size', function (b) { st.size = Number(b.dataset.n); newDeck(); });
-
-/* ---------- Memorama ---------- */
-const mem = { kind: 'p', pairs: 6, cards: [], list: [], open: [], lock: false, moves: 0, matched: 0, t0: 0, timer: null, game: 0 };
-
-function memFace(v, side) {
-  if (side === 0) return v.en;
-  return mem.kind === 'p' ? v.p : mem.kind === 'g' ? v.g : v.es;
-}
-function memPaint(i) {
-  const c = mem.cards[i];
-  const b = $('board').children[i];
-  const shown = c.up || c.done;
-  b.classList.toggle('up', c.up && !c.done);
-  b.classList.toggle('done', c.done);
-  b.firstChild.textContent = shown ? c.text + (c.done ? ' ✓' : '') : '?';
-  b.setAttribute('aria-label', shown ? c.text + (c.done ? ', pareja encontrada' : '') : 'Carta ' + (i + 1) + ', boca abajo');
-}
-function memStats() {
-  $('mem-moves').textContent = mem.moves + ' movimientos · ' + mem.matched + ' de ' + mem.pairs + ' pares';
-  $('mem-time').textContent = 'Tiempo ' + fmt(mem.t0 ? Date.now() - mem.t0 : 0);
-}
-function memNew() {
-  clearInterval(mem.timer);
-  mem.timer = null; mem.game++; mem.t0 = 0; mem.moves = 0; mem.matched = 0; mem.open = []; mem.lock = false;
-  mem.list = memPick(mem.kind, mem.pairs);
-  const cards = [];
-  mem.list.forEach(function (v, id) {
-    [0, 1].forEach(function (side) { cards.push({ id: id, side: side, text: memFace(v, side), up: false, done: false }); });
-  });
-  mem.cards = shuffle(cards);
-  const board = $('board');
-  board.innerHTML = '';
-  mem.cards.forEach(function (c, i) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'mcard' + (mem.kind === 'es' && c.side === 1 ? ' sp' : '');
-    b.dataset.i = String(i);
-    b.appendChild(document.createElement('span')).className = 't';
-    board.appendChild(b);
-    memPaint(i);
-  });
-  $('mem-win').hidden = true;
-  memStats();
-}
-function memWin() {
-  clearInterval(mem.timer);
-  mem.timer = null;
-  const win = $('mem-win');
-  let html = '<h2>¡Lo lograste!</h2><p>' + mem.moves + ' movimientos en ' + fmt(Date.now() - mem.t0) + '.</p><ul class="miss">';
-  mem.list.forEach(function (v) {
-    html += '<li><b>' + v.en + '</b><span class="forms">' + memFace(v, 1) + '</span></li>';
-  });
-  html += '</ul><div class="btns"><button type="button" class="btn" id="mem-again">Jugar otra vez</button></div>';
-  win.innerHTML = html;
-  win.hidden = false;
-  $('mem-again').addEventListener('click', memNew);
-}
-$('board').addEventListener('click', function (e) {
-  const btn = e.target.closest('.mcard');
-  if (!btn || mem.lock) return;
-  const i = Number(btn.dataset.i);
-  const c = mem.cards[i];
-  if (c.up || c.done) return;
-  if (!mem.t0) {
-    mem.t0 = Date.now();
-    mem.timer = setInterval(function () { $('mem-time').textContent = 'Tiempo ' + fmt(Date.now() - mem.t0); }, 500);
-  }
-  c.up = true;
-  memPaint(i);
-  mem.open.push(i);
-  if (mem.open.length < 2) return;
-  mem.moves++;
-  const a = mem.open[0], b = mem.open[1];
-  if (mem.cards[a].id === mem.cards[b].id) {
-    mem.cards[a].done = true; mem.cards[b].done = true;
-    mem.open = [];
-    mem.matched++;
-    memPaint(a); memPaint(b);
-    memStats();
-    if (mem.matched === mem.pairs) memWin();
-  } else {
-    mem.lock = true;
-    memStats();
-    const g = mem.game;
-    setTimeout(function () {
-      if (g !== mem.game) return;
-      mem.cards[a].up = false; mem.cards[b].up = false;
-      memPaint(a); memPaint(b);
-      mem.open = []; mem.lock = false;
-    }, 900);
-  }
-});
-seg('mem-kind', function (b) { mem.kind = b.dataset.k; memNew(); });
-seg('mem-n', function (b) { mem.pairs = Number(b.dataset.n); memNew(); });
-$('mem-new').addEventListener('click', memNew);
-
-/* ---------- Escribir ---------- */
-const FIELDS = [
-  { k: 'es', label: 'Español' },
-  { k: 'en', label: 'Infinitivo' },
-  { k: 's', label: 'Presente simple (he / she / it)' },
-  { k: 'g', label: 'Presente continuo' },
-  { k: 'p', label: 'Pasado simple' }
-];
-const wr = { deck: [], i: 0, right: 0, total: 0, given: 1, checked: false, given_keys: [], miss: [] };
-
-function wrMeta() {
-  $('w-pos').textContent = 'Verbo ' + (wr.i + 1) + ' de ' + wr.deck.length;
-  $('w-score').textContent = wr.right + ' de ' + wr.total + ' correctas';
-  $('w-bar').style.width = (100 * (wr.i + (wr.checked ? 1 : 0)) / wr.deck.length) + '%';
-}
-function wrShow() {
-  const v = wr.deck[wr.i];
-  wr.checked = false;
-  const options = FIELDS.map(function (f) { return f.k; }).filter(function (k) { return !(k === 'es' && AMB.has(v.en)); });
-  wr.given_keys = shuffle(options).slice(0, wr.given);
-  const box = $('w-fields');
-  box.innerHTML = '';
-  FIELDS.forEach(function (f) {
-    const isGiven = wr.given_keys.indexOf(f.k) !== -1;
-    const d = document.createElement('div'); d.className = 'fld';
-    const lab = document.createElement('label'); lab.setAttribute('for', 'w-' + f.k); lab.textContent = f.label;
-    if (isGiven) { const t = document.createElement('span'); t.className = 'tag'; t.textContent = 'dato'; lab.appendChild(t); }
-    const inp = document.createElement('input');
-    inp.id = 'w-' + f.k; inp.type = 'text';
-    inp.setAttribute('autocomplete', 'off'); inp.setAttribute('autocapitalize', 'none');
-    inp.setAttribute('autocorrect', 'off'); inp.spellcheck = false;
-    if (isGiven) { inp.value = v[f.k]; inp.readOnly = true; inp.className = 'given'; }
-    const fx = document.createElement('p'); fx.className = 'fx'; fx.id = 'w-fx-' + f.k;
-    d.appendChild(lab); d.appendChild(inp); d.appendChild(fx);
-    box.appendChild(d);
-  });
-  $('w-msg').textContent = '';
-  $('w-check').textContent = 'Comprobar';
-  wrMeta();
-}
-function wrCheck() {
-  const v = wr.deck[wr.i];
-  let right = 0, tot = 0, wrong = false;
-  FIELDS.forEach(function (f) {
-    if (wr.given_keys.indexOf(f.k) !== -1) return;
-    const inp = $('w-' + f.k);
-    const ok = accepted(v, f.k).indexOf(key(inp.value)) !== -1;
-    tot++;
-    inp.readOnly = true;
-    inp.classList.add(ok ? 'ok' : 'bad');
-    $('w-fx-' + f.k).innerHTML = ok
-      ? '<strong class="ok">✓ Correcto</strong>'
-      : '<strong class="bad">✗ Era</strong> <span class="ans">' + v[f.k] + '</span>';
-    if (ok) right++; else wrong = true;
-  });
-  wr.right += right; wr.total += tot;
-  if (wrong && wr.miss.indexOf(v) === -1) wr.miss.push(v);
-  wr.checked = true;
-  $('w-msg').textContent = 'Acertaste ' + right + ' de ' + tot + '.';
-  $('w-check').textContent = wr.i < wr.deck.length - 1 ? 'Siguiente verbo' : 'Ver resultados';
-  wrMeta();
-  $('w-check').focus();
-}
-function wrResults() {
-  const pct = wr.total ? Math.round(100 * wr.right / wr.total) : 0;
-  let html = '<h2>Tanda terminada</h2><p>Escribiste bien ' + wr.right + ' de ' + wr.total + ' formas (' + pct + '%).</p>';
-  if (wr.miss.length) {
-    html += '<p>Verbos para repasar:</p><ul class="miss">';
-    wr.miss.forEach(function (v) {
-      html += '<li><b>' + v.en + '</b><span class="forms">' + v.s + ' · ' + v.g + ' · ' + v.p + '</span><span class="es">' + v.es + '</span></li>';
-    });
-    html += '</ul>';
-  }
-  html += '<div class="btns"><button type="button" class="btn" id="w-again">Nueva tanda</button></div>';
-  $('w-results').innerHTML = html;
-  $('w-play').hidden = true;
-  $('w-results').hidden = false;
-  $('w-again').addEventListener('click', wrNew);
-}
-function wrNew() {
-  wr.deck = shuffle(V).slice(0, 10);
-  wr.i = 0; wr.right = 0; wr.total = 0; wr.miss = [];
-  $('w-results').hidden = true;
-  $('w-play').hidden = false;
-  wrShow();
-}
-$('w-form').addEventListener('submit', function (e) {
-  e.preventDefault();
-  if (!wr.checked) wrCheck();
-  else if (wr.i < wr.deck.length - 1) {
-    wr.i++; wrShow();
-    const first = $('w-fields').querySelector('input:not([readonly])');
-    if (first) first.focus();
-  } else wrResults();
-});
-seg('w-given', function (b) { wr.given = Number(b.dataset.n); wrNew(); });
-
-/* ---------- Relámpago ---------- */
-const bl = { on: false, run: 0, end: 0, timer: null, score: 0, streak: 0, best: 0, total: 0, cur: null, last: null, locked: false, miss: [] };
-
-function bScore() { $('b-score').textContent = bl.score + ' correctas · racha ' + bl.streak; }
-function bNext() {
-  let v;
-  do { v = V[Math.floor(Math.random() * V.length)]; } while (v === bl.last);
-  bl.last = v;
-  const kind = ['reg', 's', 'g'][Math.floor(Math.random() * 3)];
-  const d = BKINDS[kind];
-  bl.cur = { v: v, kind: kind, correct: d.cat(v) };
-  $('b-kind').textContent = d.label;
-  $('b-q').innerHTML = d.html(v);
-  const box = $('b-opts');
-  box.innerHTML = '';
-  box.classList.remove('locked');
-  d.opts.forEach(function (o) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'opt' + (d.mono ? '' : ' sp');
-    b.dataset.v = o;
-    const mark = document.createElement('span'); mark.className = 'mark'; mark.setAttribute('aria-hidden', 'true');
-    const t = document.createElement('span'); t.textContent = o;
-    b.appendChild(mark); b.appendChild(t);
-    box.appendChild(b);
-  });
-  $('b-fb').textContent = '';
-  bl.locked = false;
-}
-function bTick() {
-  const rem = Math.max(0, bl.end - Date.now());
-  $('b-time').textContent = Math.ceil(rem / 1000) + ' s';
-  $('b-bar').style.width = (100 * rem / (B_TIME * 1000)) + '%';
-  if (rem <= 0) bEnd();
-}
-function bShow(which) {
-  $('b-start').hidden = which !== 'start';
-  $('b-play').hidden = which !== 'play';
-  $('b-results').hidden = which !== 'results';
-}
-function bStart() {
-  bl.run++;
-  bl.on = true; bl.score = 0; bl.streak = 0; bl.best = 0; bl.total = 0; bl.miss = []; bl.last = null;
-  bl.end = Date.now() + B_TIME * 1000;
-  bShow('play');
-  bScore();
-  bNext();
-  bTick();
-  clearInterval(bl.timer);
-  bl.timer = setInterval(bTick, 100);
-}
-function bEnd() {
-  clearInterval(bl.timer);
-  bl.on = false;
-  const pct = bl.total ? Math.round(100 * bl.score / bl.total) : 0;
-  let html = '<h2>Se acabó el tiempo</h2><p>' + bl.score + ' correctas de ' + bl.total + ' (' + pct + '%). Mejor racha: ' + bl.best + '.</p>';
-  if (bl.miss.length) {
-    html += '<p>Para repasar:</p><ul class="miss">';
-    bl.miss.forEach(function (m) {
-      const d = BKINDS[m.kind];
-      html += '<li><b>' + m.v.en + '</b><span class="forms">' + d.label.toLowerCase() + ': ' + d.show(m.v) + ' · ' + m.correct + '</span></li>';
-    });
-    html += '</ul>';
-  }
-  html += '<div class="btns"><button type="button" class="btn" id="b-again">Jugar otra vez</button></div>';
-  $('b-results').innerHTML = html;
-  bShow('results');
-  $('b-again').addEventListener('click', bStart);
-}
-function bReset() {
-  if (bl.on) { clearInterval(bl.timer); bl.on = false; }
-  bShow('start');
-}
-$('b-go').addEventListener('click', bStart);
-$('b-opts').addEventListener('click', function (e) {
-  const btn = e.target.closest('.opt');
-  if (!btn || bl.locked || !bl.on) return;
-  bl.locked = true;
-  bl.total++;
-  $('b-opts').classList.add('locked');
-  const cur = bl.cur;
-  const d = BKINDS[cur.kind];
-  const ok = btn.dataset.v === cur.correct;
-  each($('b-opts').querySelectorAll('.opt'), function (o) {
-    const mark = o.querySelector('.mark');
-    if (o.dataset.v === cur.correct) { o.classList.add('ok'); mark.textContent = '✓'; }
-    else if (o === btn) { o.classList.add('bad'); mark.textContent = '✗'; }
-  });
-  if (ok) {
-    bl.score++; bl.streak++; bl.best = Math.max(bl.best, bl.streak);
-    $('b-fb').innerHTML = '<strong class="ok">✓ Correcto.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
-  } else {
-    bl.streak = 0;
-    if (!bl.miss.some(function (m) { return m.v === cur.v && m.kind === cur.kind; })) bl.miss.push({ v: cur.v, kind: cur.kind, correct: cur.correct });
-    $('b-fb').innerHTML = '<strong class="bad">✗ Era ' + cur.correct + '.</strong> <span class="ans">' + cur.v.en + ' → ' + d.show(cur.v) + '</span>';
-  }
-  bScore();
-  const run = bl.run;
-  setTimeout(function () { if (bl.on && bl.run === run) bNext(); }, ok ? 450 : 1300);
-});
-
-/* ---------- Lista ---------- */
-function rowHtml(v) {
-  const irregular = !/ed$/.test(v.p);
-  const stative = STATIVE.indexOf(v.en) !== -1;
-  const past = irregular
-    ? '<span class="irr-form">' + v.p + '</span><span class="tag irr">irregular</span>' + (v.note ? '<span class="note">' + v.note + '</span>' : '')
-    : v.p;
-  return '<li class="row">' +
-    '<div class="c es" data-l="Español">' + v.es + '</div>' +
-    '<div class="c en" data-l="Inglés">' + v.en + '</div>' +
-    '<div class="c f" data-l="He / she / it"><span>' + v.s + '</span></div>' +
-    '<div class="c f" data-l="Continuo"><span>' + v.g + (stative ? '<span class="tag">estado</span>' : '') + '</span></div>' +
-    '<div class="c f p" data-l="Pasado simple"><span>' + past + '</span></div>' +
-    '</li>';
-}
-function renderList() { $('list').innerHTML = shuffle(V).map(rowHtml).join(''); }
-$('count').textContent = V.length + ' verbos';
-$('shuffle').addEventListener('click', renderList);
-
-/* ---------- Pestañas ---------- */
-const TABS = ['quiz', 'mem', 'write', 'blitz', 'list'];
-function selectTab(name) {
-  TABS.forEach(function (t) {
-    $('pane-' + t).hidden = t !== name;
-    $('tab-' + t).setAttribute('aria-selected', t === name ? 'true' : 'false');
-  });
-  if (name !== 'blitz') bReset();
-}
-TABS.forEach(function (t) { $('tab-' + t).addEventListener('click', function () { selectTab(t); }); });
-
-renderList();
-newDeck();
-memNew();
-wrNew();
-bReset();
-</script>
-
-</body></html>
+  ['cook','cooks','cooking','cooked','cocinar'
